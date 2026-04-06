@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://singh-sumit.github.io/xmlrpc_extended/architecture/">
       
       
-        <link rel="prev" href="../api-reference/multiprocess/">
+        <link rel="prev" href="../api-reference/asgi/">
       
       
         <link rel="next" href="../benchmarks/">
@@ -721,6 +721,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/asgi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ASGI Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -853,6 +881,34 @@
     
   
     multiprocess
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/asgi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    asgi
   
 
     
@@ -1046,6 +1102,67 @@
     <span class="md-ellipsis">
       
         Why inherit from SimpleXMLRPCServer?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#asgi-adapter-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ASGI adapter architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ASGI adapter architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#asgi-request-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ASGI request lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handler-dispatch-flowchart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Handler dispatch flowchart
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asgi-lifespan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ASGI lifespan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asgi-vs-thread-pool-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ASGI vs thread-pool comparison
       
     </span>
   </a>
@@ -1344,6 +1461,67 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#asgi-adapter-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ASGI adapter architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ASGI adapter architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#asgi-request-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ASGI request lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handler-dispatch-flowchart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Handler dispatch flowchart
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asgi-lifespan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ASGI lifespan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asgi-vs-thread-pool-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ASGI vs thread-pool comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1604,6 +1782,87 @@ predictable memory footprint under load.</p>
 <p>Constructor-level compatibility with <code>SimpleXMLRPCServer</code> means drop-in
 replacement: existing code that passes <code>logRequests</code>, <code>allow_none</code>, etc. works
 unchanged. The handler chain and method dispatch are unchanged from the stdlib.</p>
+<hr />
+<h2 id="asgi-adapter-architecture">ASGI adapter architecture<a class="headerlink" href="#asgi-adapter-architecture" title="Permanent link">&para;</a></h2>
+<p><code>XMLRPCASGIApp</code> exposes the same XML-RPC method registry via an ASGI 3
+interface.  The key difference from <code>ThreadPoolXMLRPCServer</code> is that the
+<strong>event loop multiplexes connections</strong> instead of OS threads.</p>
+<h3 id="asgi-request-lifecycle">ASGI request lifecycle<a class="headerlink" href="#asgi-request-lifecycle" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant C   as Client
+    participant AS  as ASGI Server&lt;br/&gt;(uvicorn / hypercorn)
+    participant APP as XMLRPCASGIApp&lt;br/&gt;(__call__)
+    participant EL  as asyncio event loop
+    participant TP  as ThreadPoolExecutor&lt;br/&gt;(sync handlers only)
+    participant H   as Handler function
+
+    C  -&gt;&gt; AS  : HTTP POST /rpc (XML-RPC body)
+    AS -&gt;&gt; APP : scope, receive, send
+    APP -&gt;&gt; APP : check path &amp; method
+    APP -&gt;&gt; APP : read body (receive events)
+    APP -&gt;&gt; APP : parse XML-RPC (xmlrpc.client.loads)
+    alt async def handler
+        APP -&gt;&gt; EL : await handler(*params)
+        EL --&gt;&gt; APP : result
+    else sync handler
+        APP -&gt;&gt; TP : loop.run_in_executor(handler, *params)
+        TP --&gt;&gt; APP : result
+    end
+    APP -&gt;&gt; APP : marshal response (xmlrpc.client.dumps)
+    APP -&gt;&gt; AS  : send HTTP 200 + XML body
+    AS  -&gt;&gt; C   : HTTP response</code></pre>
+<h3 id="handler-dispatch-flowchart">Handler dispatch flowchart<a class="headerlink" href="#handler-dispatch-flowchart" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart TD
+    A[method name from request] --&gt; B{in self.funcs?}
+    B -- yes --&gt; F[found function]
+    B -- no  --&gt; C{instance registered?}
+    C -- no  --&gt; FAULT[Fault -32601: not supported]
+    C -- yes --&gt; D{has _dispatch method?}
+    D -- yes --&gt; E[call instance._dispatch]
+    E --&gt; F
+    D -- no  --&gt; G[resolve_dotted_attribute]
+    G -- found --&gt; F
+    G -- AttributeError --&gt; FAULT
+    F --&gt; H{async def?}
+    H -- yes --&gt; I[await directly in event loop]
+    H -- no  --&gt; J[asyncio.to_thread → ThreadPoolExecutor]
+    I --&gt; K[marshal &amp; return]
+    J --&gt; K</code></pre>
+<h3 id="asgi-lifespan">ASGI lifespan<a class="headerlink" href="#asgi-lifespan" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; Idle : XMLRPCASGIApp()
+    Idle --&gt; Running : lifespan.startup\n(creates ThreadPoolExecutor)
+    Running --&gt; Idle : lifespan.shutdown\n(drains &amp; closes executor)
+    Idle --&gt; Running : lazy — first request\n(no lifespan server)
+    Running --&gt; Closed : app.close()
+    Idle --&gt; Closed : app.close() — no-op
+    Closed --&gt; [*]</code></pre>
+<h3 id="asgi-vs-thread-pool-comparison">ASGI vs thread-pool comparison<a class="headerlink" href="#asgi-vs-thread-pool-comparison" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>graph LR
+    subgraph ThreadPoolXMLRPCServer
+        direction TB
+        TCP[OS TCP socket] --&gt; Accept[Accept thread]
+        Accept --&gt; TP1[ThreadPoolExecutor]
+        TP1 --&gt; W1[Worker 1]
+        TP1 --&gt; W2[Worker 2]
+        TP1 --&gt; WN[Worker N]
+    end
+
+    subgraph XMLRPCASGIApp
+        direction TB
+        ASGI[ASGI server\nuvicorn / hypercorn] --&gt; EL[asyncio event loop]
+        EL --&gt; AH[async handler\n→ awaited directly]
+        EL --&gt; TP2[ThreadPoolExecutor]
+        TP2 --&gt; SW1[sync handler 1]
+        TP2 --&gt; SW2[sync handler 2]
+    end</code></pre>
+<div class="admonition tip">
+<p class="admonition-title">When to choose ASGI</p>
+<p>If your handlers are <code>async def</code> and do async I/O, <code>XMLRPCASGIApp</code> avoids
+thread-pool overhead entirely — all concurrency happens in one event loop.
+For mixed workloads (some sync legacy code, some new async code) both can
+coexist in the same <code>XMLRPCASGIApp</code> instance.</p>
+</div>
 
 
 
@@ -1693,7 +1952,7 @@ unchanged. The handler chain and method dispatch are unchanged from the stdlib.<
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../api-reference/multiprocess/" class="md-footer__link md-footer__link--prev" aria-label="Previous: multiprocess">
+          <a href="../api-reference/asgi/" class="md-footer__link md-footer__link--prev" aria-label="Previous: asgi">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1703,7 +1962,7 @@ unchanged. The handler chain and method dispatch are unchanged from the stdlib.<
                 Previous
               </span>
               <div class="md-ellipsis">
-                multiprocess
+                asgi
               </div>
             </div>
           </a>

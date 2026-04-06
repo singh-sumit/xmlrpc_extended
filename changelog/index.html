@@ -719,6 +719,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/asgi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ASGI Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -851,6 +879,34 @@
     
   
     multiprocess
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/asgi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    asgi
   
 
     
@@ -1098,6 +1154,28 @@
 and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>XMLRPCASGIApp</code> — ASGI 3-compliant XML-RPC adapter (<code>src/xmlrpc_extended/asgi.py</code>):</li>
+<li>Inherits <code>SimpleXMLRPCDispatcher</code> for full <code>register_function</code> / <code>register_instance</code> / <code>register_introspection_functions</code> compatibility.</li>
+<li><code>async def</code> handlers are awaited directly in the event loop (no thread overhead).</li>
+<li>Synchronous handlers run in a <code>ThreadPoolExecutor</code> via <code>asyncio.to_thread</code>.</li>
+<li>ASGI lifespan protocol: startup creates the thread pool, shutdown drains it gracefully.</li>
+<li>Configurable <code>max_workers</code>, <code>max_request_size</code>, <code>rpc_path</code>, <code>allow_none</code>, <code>encoding</code>, <code>use_builtin_types</code>.</li>
+<li>HTTP semantics: <code>404</code> for wrong path, <code>405</code> for non-POST, <code>413</code> for oversized body, <code>-32700</code> fault for malformed XML.</li>
+<li>Zero runtime dependencies — pure stdlib + asyncio.</li>
+<li><code>tests/test_asgi.py</code> — 45 tests following AAA pattern covering: smoke, call semantics, HTTP semantics, lifespan, dispatch edge-cases, introspection, error handling, and concurrency.</li>
+<li><code>benchmarks/benchmark_asgi.py</code> — in-process ASGI benchmark using <code>httpx.ASGITransport</code>.</li>
+<li><code>docs/user-guide/asgi.md</code> — full ASGI integration guide with deployment recipes, migration table, and testing patterns.</li>
+<li><code>docs/api-reference/asgi.md</code> — API reference for <code>XMLRPCASGIApp</code>.</li>
+<li><code>docs/architecture.md</code> — ASGI request lifecycle sequence diagram, handler dispatch flowchart, lifespan state diagram, and architecture comparison diagram.</li>
+<li><code>docs/benchmarks.md</code> — ASGI benchmark results section.</li>
+<li><code>[tool.coverage.*]</code> in <code>pyproject.toml</code> — branch coverage, fail-under=100, HTML report config.</li>
+<li><code>coverage</code>, <code>httpx</code>, <code>anyio</code> added to <code>[project.optional-dependencies.dev]</code>.</li>
+<li><code>CoverageGapTests</code> in <code>test_server.py</code> — 9 new tests closing all prior coverage gaps in <code>server.py</code>.</li>
+<li><code>test_extras.py</code> — 2 new tests closing coverage gaps in <code>multiprocess.py</code> and <code>client.py</code>.</li>
+<li>AAA (Arrange-Act-Assert) comment pattern applied to all test methods.</li>
+</ul>
+<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>ConstructorValidationTests</code>: 13 new tests covering invalid <code>max_workers</code>, <code>max_pending</code>, <code>request_queue_size</code>, <code>max_request_size</code>, custom fault code/string, <code>bind_and_activate=False</code>, <code>allow_none</code>, <code>use_builtin_types</code>, and policy string normalization.</li>
 <li><code>ExecutorShutdownTests</code>: tests for <code>shutdown_executor</code> idempotency and custom fault response.</li>
