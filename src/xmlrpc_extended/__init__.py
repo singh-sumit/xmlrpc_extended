@@ -3,6 +3,7 @@
 from .server import (
     LimitedXMLRPCRequestHandler,
     ServerOverloadPolicy,
+    ServerStats,
     ThreadPoolXMLRPCServer,
     XMLRPCServerConfig,
 )
@@ -10,6 +11,7 @@ from .server import (
 __all__ = [
     "LimitedXMLRPCRequestHandler",
     "ServerOverloadPolicy",
+    "ServerStats",
     "ThreadPoolXMLRPCServer",
     "XMLRPCServerConfig",
 ]

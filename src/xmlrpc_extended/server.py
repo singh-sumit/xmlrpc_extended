@@ -18,6 +18,77 @@ class ServerOverloadPolicy(str, Enum):
     BLOCK = "block"
     CLOSE = "close"
     FAULT = "fault"
+    HTTP_503 = "http_503"
+
+
+@dataclass(frozen=True)
+class ServerStats:
+    """Immutable snapshot of server activity counters."""
+
+    active: int
+    queued: int
+    rejected_close: int
+    rejected_fault: int
+    rejected_503: int
+    completed: int
+    errored: int
+
+
+class _StatsTracker:
+    """Thread-safe mutable counters; call :meth:`snapshot` for a point-in-time view."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._submitted = 0
+        self._active = 0
+        self._rejected_close = 0
+        self._rejected_fault = 0
+        self._rejected_503 = 0
+        self._completed = 0
+        self._errored = 0
+
+    def record_submitted(self) -> None:
+        with self._lock:
+            self._submitted += 1
+
+    def record_started(self) -> None:
+        with self._lock:
+            self._submitted -= 1
+            self._active += 1
+
+    def record_completed(self) -> None:
+        with self._lock:
+            self._active -= 1
+            self._completed += 1
+
+    def record_errored(self) -> None:
+        with self._lock:
+            self._active -= 1
+            self._errored += 1
+
+    def record_rejected_close(self) -> None:
+        with self._lock:
+            self._rejected_close += 1
+
+    def record_rejected_fault(self) -> None:
+        with self._lock:
+            self._rejected_fault += 1
+
+    def record_rejected_503(self) -> None:
+        with self._lock:
+            self._rejected_503 += 1
+
+    def snapshot(self) -> ServerStats:
+        with self._lock:
+            return ServerStats(
+                active=self._active,
+                queued=self._submitted,
+                rejected_close=self._rejected_close,
+                rejected_fault=self._rejected_fault,
+                rejected_503=self._rejected_503,
+                completed=self._completed,
+                errored=self._errored,
+            )
 
 
 @dataclass(frozen=True)
@@ -95,6 +166,7 @@ class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
         max_request_size: int = XMLRPCServerConfig.max_request_size,
         overload_fault_code: int = XMLRPCServerConfig.overload_fault_code,
         overload_fault_string: str = XMLRPCServerConfig.overload_fault_string,
+        rpc_paths: tuple[str, ...] | None = None,
     ) -> None:
         normalized_policy = ServerOverloadPolicy(overload_policy)
         effective_pending = max_workers if max_pending is None else max_pending
@@ -122,8 +194,9 @@ class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
         self._executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="xmlrpc")
         self._executor_lock = threading.Lock()
         self._executor_closed = False
+        self._stats = _StatsTracker()
 
-        request_handler_class = self._build_request_handler(requestHandler, max_request_size)
+        request_handler_class = self._build_request_handler(requestHandler, max_request_size, rpc_paths)
         try:
             super().__init__(
                 addr,
@@ -142,6 +215,10 @@ class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
     def config(self) -> XMLRPCServerConfig:
         return self._config
 
+    def stats(self) -> ServerStats:
+        """Return a point-in-time snapshot of server activity counters."""
+        return self._stats.snapshot()
+
     def process_request(self, request: Any, client_address: tuple[str, int]) -> None:
         if not self._acquire_capacity():
             self._reject_request(request)
@@ -156,16 +233,19 @@ class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
 
     def submit_request(self, request: Any, client_address: tuple[str, int]) -> None:
         """Submit a request to the worker pool."""
-
+        self._stats.record_submitted()
         self._executor.submit(self._process_request_worker, request, client_address)
 
     def _process_request_worker(self, request: Any, client_address: tuple[str, int]) -> None:
+        self._stats.record_started()
         try:
             self.finish_request(request, client_address)
             self.shutdown_request(request)
+            self._stats.record_completed()
         except Exception:
             self.handle_error(request, client_address)
             self.shutdown_request(request)
+            self._stats.record_errored()
         finally:
             self._capacity.release()
 
@@ -177,7 +257,13 @@ class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
 
     def _reject_request(self, request: Any) -> None:
         if self.config.overload_policy is ServerOverloadPolicy.FAULT:
+            self._stats.record_rejected_fault()
             self._send_fault_response(request)
+        elif self.config.overload_policy is ServerOverloadPolicy.HTTP_503:
+            self._stats.record_rejected_503()
+            self._send_503_response(request)
+        else:
+            self._stats.record_rejected_close()
         self.shutdown_request(request)
 
     def _send_fault_response(self, request: Any) -> None:
@@ -216,6 +302,31 @@ class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
         except (OSError, TimeoutError):
             pass
 
+    def _send_503_response(self, request: Any) -> None:
+        body = b"Service Unavailable"
+        response = (
+            "HTTP/1.1 503 Service Unavailable\r\n"
+            "Content-Type: text/plain\r\n"
+            f"Content-Length: {len(body)}\r\n"
+            "Retry-After: 1\r\n"
+            "Connection: close\r\n"
+            "\r\n"
+        ).encode("ascii") + body
+        try:
+            request.sendall(response)
+        except OSError:
+            return
+        try:
+            request.shutdown(socket.SHUT_WR)
+        except OSError:
+            return
+        try:
+            request.settimeout(1.0)
+            while request.recv(4096):
+                pass
+        except (OSError, TimeoutError):
+            pass
+
     def shutdown_executor(self, *, wait: bool = True) -> None:
         with self._executor_lock:
             if self._executor_closed:
@@ -231,23 +342,28 @@ class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
     def _build_request_handler(
         request_handler: type[SimpleXMLRPCRequestHandler],
         max_request_size: int,
+        rpc_paths: tuple[str, ...] | None = None,
     ) -> type[SimpleXMLRPCRequestHandler]:
+        overrides: dict[str, object] = {"max_request_size": max_request_size}
+        if rpc_paths is not None:
+            overrides["rpc_paths"] = rpc_paths
         if issubclass(request_handler, LimitedXMLRPCRequestHandler):
             return type(
                 f"{request_handler.__name__}WithSizeLimit",
                 (request_handler,),
-                {"max_request_size": max_request_size},
+                overrides,
             )
         return type(
             f"{request_handler.__name__}WithSizeLimit",
             (LimitedXMLRPCRequestHandler, request_handler),
-            {"max_request_size": max_request_size},
+            overrides,
         )
 
 
 __all__ = [
     "LimitedXMLRPCRequestHandler",
     "ServerOverloadPolicy",
+    "ServerStats",
     "ThreadPoolXMLRPCServer",
     "XMLRPCServerConfig",
 ]

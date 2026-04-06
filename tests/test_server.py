@@ -8,7 +8,7 @@ import xmlrpc.client
 from contextlib import contextmanager
 from unittest import mock
 
-from xmlrpc_extended import ServerOverloadPolicy, ThreadPoolXMLRPCServer
+from xmlrpc_extended import ServerOverloadPolicy, ServerStats, ThreadPoolXMLRPCServer
 
 
 @contextmanager
@@ -494,6 +494,215 @@ class ExecutorShutdownTests(unittest.TestCase):
             release.set()
             holder.join(timeout=2)
             server.shutdown()
+
+
+class RpcPathsTests(unittest.TestCase):
+    """rpc_paths parameter restricts which URL paths accept XML-RPC."""
+
+    def _make_request(self, url: str, path: str) -> int:
+        host = url.removeprefix("http://").split(":")[0]
+        port = int(url.rsplit(":", 1)[1])
+        body = b"<?xml version='1.0'?><methodCall><methodName>ping</methodName><params/></methodCall>"
+        conn = http.client.HTTPConnection(host, port, timeout=2)
+        conn.request("POST", path, body=body, headers={
+            "Content-Type": "text/xml",
+            "Content-Length": str(len(body)),
+        })
+        status = conn.getresponse().status
+        conn.close()
+        return status
+
+    def test_default_paths_accept_root_and_rpc2(self):
+        with running_server() as (server, url):
+            server.register_function(lambda: "pong", "ping")
+            self.assertEqual(200, self._make_request(url, "/"))
+            self.assertEqual(200, self._make_request(url, "/RPC2"))
+
+    def test_custom_rpc_paths_rejects_disallowed_path(self):
+        server = ThreadPoolXMLRPCServer(
+            ("127.0.0.1", 0),
+            logRequests=False,
+            rpc_paths=("/api",),
+        )
+        server.register_function(lambda: "pong", "ping")
+        t = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True)
+        t.start()
+        url = f"http://127.0.0.1:{server.server_address[1]}"
+        try:
+            self.assertEqual(404, self._make_request(url, "/"))
+            self.assertEqual(404, self._make_request(url, "/RPC2"))
+            self.assertEqual(200, self._make_request(url, "/api"))
+        finally:
+            server.shutdown()
+            server.server_close()
+            t.join(timeout=2)
+
+
+class ServerStatsTests(unittest.TestCase):
+    """ServerStats snapshot reflects actual request activity."""
+
+    def test_stats_returns_server_stats_instance(self):
+        server = ThreadPoolXMLRPCServer(("127.0.0.1", 0), bind_and_activate=False)
+        try:
+            self.assertIsInstance(server.stats(), ServerStats)
+        finally:
+            server.shutdown_executor(wait=False)
+            server.server_close()
+
+    def test_completed_counter_increments(self):
+        with running_server(max_workers=2) as (server, url):
+            server.register_function(lambda: "ok", "ping")
+            proxy = xmlrpc.client.ServerProxy(url, allow_none=True)
+            proxy.ping()
+            proxy.ping()
+            # Give worker threads time to call record_completed after shutdown_request
+            time.sleep(0.05)
+            snap = server.stats()
+            self.assertEqual(2, snap.completed)
+            self.assertEqual(0, snap.errored)
+
+    def test_errored_counter_does_not_count_xmlrpc_faults(self):
+        # XML-RPC handler exceptions are caught by the dispatcher and returned
+        # as XML-RPC faults. They do NOT increment the errored counter — only
+        # exceptions that escape finish_request entirely (transport-level) do.
+        def boom():
+            raise RuntimeError("fail")
+
+        with running_server(max_workers=2) as (server, url):
+            server.register_function(boom, "boom")
+            proxy = xmlrpc.client.ServerProxy(url, allow_none=True)
+            try:
+                proxy.boom()
+            except xmlrpc.client.Fault:
+                pass
+            time.sleep(0.05)
+            snap = server.stats()
+            # Handler exception → dispatched as fault → completed, not errored
+            self.assertEqual(1, snap.completed)
+            self.assertEqual(0, snap.errored)
+
+    def test_rejected_fault_counter_increments(self):
+        started = threading.Event()
+        release = threading.Event()
+
+        def block():
+            started.set()
+            release.wait(timeout=2)
+            return "done"
+
+        with running_server(max_workers=1, max_pending=0, overload_policy=ServerOverloadPolicy.FAULT) as (server, url):
+            server.register_function(block, "block")
+            holder = threading.Thread(target=lambda: xmlrpc.client.ServerProxy(url).block())
+            holder.start()
+            started.wait(timeout=2)
+
+            try:
+                xmlrpc.client.ServerProxy(url).block()
+            except xmlrpc.client.Fault:
+                pass
+
+            release.set()
+            holder.join(timeout=2)
+
+            snap = server.stats()
+            self.assertEqual(1, snap.rejected_fault)
+
+    def test_rejected_close_counter_increments(self):
+        started = threading.Event()
+        release = threading.Event()
+
+        def block():
+            started.set()
+            release.wait(timeout=2)
+            return "done"
+
+        with running_server(max_workers=1, max_pending=0, overload_policy=ServerOverloadPolicy.CLOSE) as (server, url):
+            server.register_function(block, "block")
+            holder = threading.Thread(target=lambda: xmlrpc.client.ServerProxy(url).block())
+            holder.start()
+            started.wait(timeout=2)
+
+            try:
+                xmlrpc.client.ServerProxy(url).block()
+            except Exception:
+                pass
+
+            release.set()
+            holder.join(timeout=2)
+
+            # The client may retry on connection close; assert at least 1
+            snap = server.stats()
+            self.assertGreaterEqual(snap.rejected_close, 1)
+
+
+class Http503PolicyTests(unittest.TestCase):
+    """HTTP_503 overload policy returns a proper HTTP 503 response."""
+
+    def test_http_503_returned_when_server_saturated(self):
+        started = threading.Event()
+        release = threading.Event()
+
+        def block():
+            started.set()
+            release.wait(timeout=2)
+            return "done"
+
+        with running_server(
+            max_workers=1, max_pending=0, overload_policy=ServerOverloadPolicy.HTTP_503
+        ) as (server, url):
+            server.register_function(block, "block")
+            holder = threading.Thread(target=lambda: xmlrpc.client.ServerProxy(url).block())
+            holder.start()
+            started.wait(timeout=2)
+
+            host = url.removeprefix("http://").split(":")[0]
+            port = int(url.rsplit(":", 1)[1])
+            body = b"<?xml version='1.0'?><methodCall><methodName>block</methodName><params/></methodCall>"
+            conn = http.client.HTTPConnection(host, port, timeout=2)
+            conn.request("POST", "/", body=body, headers={
+                "Content-Type": "text/xml",
+                "Content-Length": str(len(body)),
+            })
+            response = conn.getresponse()
+            self.assertEqual(503, response.status)
+            conn.close()
+
+            release.set()
+            holder.join(timeout=2)
+
+    def test_rejected_503_counter_increments(self):
+        started = threading.Event()
+        release = threading.Event()
+
+        def block():
+            started.set()
+            release.wait(timeout=2)
+            return "done"
+
+        with running_server(
+            max_workers=1, max_pending=0, overload_policy=ServerOverloadPolicy.HTTP_503
+        ) as (server, url):
+            server.register_function(block, "block")
+            holder = threading.Thread(target=lambda: xmlrpc.client.ServerProxy(url).block())
+            holder.start()
+            started.wait(timeout=2)
+
+            host = url.removeprefix("http://").split(":")[0]
+            port = int(url.rsplit(":", 1)[1])
+            body = b"<?xml version='1.0'?><methodCall><methodName>block</methodName><params/></methodCall>"
+            conn = http.client.HTTPConnection(host, port, timeout=2)
+            conn.request("POST", "/", body=body, headers={
+                "Content-Type": "text/xml",
+                "Content-Length": str(len(body)),
+            })
+            conn.getresponse().read()
+            conn.close()
+
+            release.set()
+            holder.join(timeout=2)
+
+            snap = server.stats()
+            self.assertEqual(1, snap.rejected_503)
 
 
 if __name__ == "__main__":
