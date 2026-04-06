@@ -65,14 +65,82 @@ total outstanding capacity = max_workers + max_pending
 | `BLOCK` (default) | The accept thread blocks until a worker slot opens. Requests queue at the OS level. Suitable for trusted, low-variance load. |
 | `CLOSE` | The connection is closed immediately without sending a response. The client receives a connection-reset error. Suitable for shedding load fast. |
 | `FAULT` | An XML-RPC fault response is returned with the configured `overload_fault_code` and `overload_fault_string`. Clients that speak XML-RPC can distinguish overload from method errors. |
+| `HTTP_503` | An HTTP `503 Service Unavailable` response is returned. Non-XML-RPC clients (e.g. HTTP health-checkers) can detect overload at the transport layer. |
 
 ### Recommended defaults
 
 | Deployment | Suggested settings |
 |------------|--------------------|
 | Embedded / internal tool | `max_workers=4`, `max_pending=None` (= 4), `BLOCK` |
-| Service with SLA | `max_workers=N`, `max_pending=0`, `FAULT` or `CLOSE` |
-| Behind a load balancer | `max_workers=N`, `max_pending=small`, `CLOSE` |
+| Service with SLA | `max_workers=N`, `max_pending=0`, `FAULT` or `HTTP_503` |
+| Behind a load balancer | `max_workers=N`, `max_pending=small`, `CLOSE` or `HTTP_503` |
+
+## Restricting accepted URL paths
+
+By default the server accepts XML-RPC requests at `/` and `/RPC2`. Restrict this with `rpc_paths`:
+
+```python
+server = ThreadPoolXMLRPCServer(
+    ("127.0.0.1", 8000),
+    rpc_paths=("/rpc",),  # only /rpc is accepted; all others return 404
+)
+```
+
+## Observability — server stats
+
+`ThreadPoolXMLRPCServer.stats()` returns a `ServerStats` snapshot with the following counters:
+
+| Field | Meaning |
+|-------|---------|
+| `active` | Requests currently executing in worker threads |
+| `queued` | Requests submitted to the thread pool but not yet running |
+| `rejected_close` | Requests rejected with connection close (CLOSE policy) |
+| `rejected_fault` | Requests rejected with fault response (FAULT policy) |
+| `rejected_503` | Requests rejected with HTTP 503 (HTTP_503 policy) |
+| `completed` | Requests that finished successfully |
+| `errored` | Requests that raised an exception in the handler |
+
+```python
+snap = server.stats()
+print(f"active={snap.active} queued={snap.queued} completed={snap.completed}")
+```
+
+## Client helpers
+
+`xmlrpc_extended.client` provides `XMLRPCClient`, a context-manager wrapper with an explicit timeout:
+
+```python
+from xmlrpc_extended.client import XMLRPCClient
+
+with XMLRPCClient("http://127.0.0.1:8000/", timeout=5.0) as proxy:
+    result = proxy.add(1, 2)
+```
+
+The default timeout is **30 seconds**. Retrying failed requests is the caller's responsibility — XML-RPC methods are not necessarily idempotent.
+
+## Scale-out with SO_REUSEPORT (Linux only)
+
+On Linux, multiple server processes can share the same port using `SO_REUSEPORT`:
+
+```python
+from xmlrpc_extended.multiprocess import create_reuseport_socket, spawn_workers
+from xmlrpc_extended import ThreadPoolXMLRPCServer
+
+def run_worker():
+    sock = create_reuseport_socket("0.0.0.0", 8000)
+    server = ThreadPoolXMLRPCServer(("0.0.0.0", 0), bind_and_activate=False)
+    server.socket = sock
+    server.server_activate()
+    server.register_function(lambda x: x + 1, "inc")
+    server.serve_forever()
+
+if __name__ == "__main__":
+    processes = spawn_workers(run_worker, num_workers=4)
+    for p in processes:
+        p.join()
+```
+
+See `xmlrpc_extended.multiprocess` module docs for full details.
 
 ## Development approach
 
@@ -89,13 +157,20 @@ python -m pip install . --no-deps
 python -m unittest discover -s tests -v
 ```
 
-## Security notes
+## Benchmarks
 
-- XML-RPC from the Python stdlib is not suitable for untrusted public networks.
-- Prefer localhost/private-network deployment behind authentication and TLS
-  termination.
+```bash
+pip install .
+python benchmarks/benchmark_server.py --requests 200 --clients 8 --sleep 0.02
+```
+
+## Security
+
+> ⚠️ `xmlrpc_extended` is not suitable for untrusted public networks. See [SECURITY.md](SECURITY.md) for the full security posture, deployment checklist, and vulnerability reporting process.
+
 - Use `max_request_size` to reject oversized payloads early.
-- Avoid exposing dotted-name instance traversal on insecure networks.
+- Restrict URL paths with `rpc_paths`.
+- Never set `allow_dotted_names=True` on handlers exposed to untrusted clients.
 
 ### Request-size and request-shape expectations
 
@@ -116,6 +191,23 @@ constructor.
 
 ## Roadmap
 
-- worker-process helpers and `SO_REUSEPORT` support
-- optional async/ASGI integration
+| Milestone | Target | Description |
+|-----------|--------|-------------|
+| M2 | 0.3.0 | Metrics hooks, observability examples, benchmarks ✅ |
+| M3 | 0.4.0 | Multi-process / SO_REUSEPORT, HTTP 503 rejection, client helpers ✅ |
+| M4 | 0.5.0+ | Optional ASGI/async integration (see below) |
+
+### Async / ASGI integration (M4)
+
+An optional ASGI adapter for async frameworks (Starlette, FastAPI, etc.) is planned for M4. Design goals:
+
+- **Core package stays sync** — no async dependencies imposed on existing users.
+- **Optional extra** — installed via `pip install xmlrpc_extended[asgi]`.
+- **Adapter pattern** — wraps the XML-RPC dispatcher as an ASGI app, delegating request routing to the framework.
+
+When to prefer async over threads:
+- You already run an ASGI framework (Starlette, Litestar) and want to co-host XML-RPC.
+- Handler concurrency is I/O-bound and you want to avoid thread overhead at very high connection counts.
+- For CPU-bound workloads, prefer multi-process (`xmlrpc_extended.multiprocess`) regardless.
+
 - richer operational metrics and examples
