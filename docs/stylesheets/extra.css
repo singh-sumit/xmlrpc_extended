@@ -1,0 +1,19 @@
+/* Custom stylesheet for xmlrpc_extended docs */
+
+/* Slightly widen the content area on large screens */
+@media screen and (min-width: 76.25em) {
+  .md-content {
+    max-width: 860px;
+  }
+}
+
+/* Tighter spacing for API tables */
+.md-typeset table:not([class]) th,
+.md-typeset table:not([class]) td {
+  padding: 0.5em 0.75em;
+}
+
+/* Mermaid diagram centering */
+.mermaid {
+  text-align: center;
+}

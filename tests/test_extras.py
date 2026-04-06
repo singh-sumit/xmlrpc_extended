@@ -1,4 +1,5 @@
 """Tests for xmlrpc_extended.client and xmlrpc_extended.multiprocess."""
+
 import sys
 import threading
 import unittest
@@ -65,6 +66,7 @@ class MultiprocessModuleTests(unittest.TestCase):
         if sys.platform == "linux":
             self.skipTest("Running on Linux — SO_REUSEPORT is supported")
         from xmlrpc_extended.multiprocess import create_reuseport_socket
+
         with self.assertRaises(OSError):
             create_reuseport_socket("127.0.0.1", 19999)
 
@@ -74,6 +76,7 @@ class MultiprocessModuleTests(unittest.TestCase):
         import socket as _socket
 
         from xmlrpc_extended.multiprocess import create_reuseport_socket
+
         sock = create_reuseport_socket("127.0.0.1", 0)
         try:
             self.assertEqual(_socket.AF_INET, sock.family)
@@ -91,6 +94,7 @@ class MultiprocessModuleTests(unittest.TestCase):
         import os
 
         from xmlrpc_extended.multiprocess import spawn_workers
+
         processes = spawn_workers(os.getpid, num_workers=2)  # getpid is picklable
         try:
             for p in processes:

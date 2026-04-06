@@ -1,0 +1,144 @@
+site_name: xmlrpc_extended
+site_url: https://singh-sumit.github.io/xmlrpc_extended/
+site_description: >-
+  Thread-pool powered extensions for Python's built-in XML-RPC server —
+  bounded concurrency, overload policies, and production-grade instrumentation.
+site_author: singh-sumit
+repo_url: https://github.com/singh-sumit/xmlrpc_extended
+repo_name: singh-sumit/xmlrpc_extended
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/server-network
+
+plugins:
+  - search:
+      lang: en
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_if_no_docstring: false
+            heading_level: 2
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+            merge_init_into_class: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path:
+        - docs
+        - .
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - toc:
+      permalink: true
+      title: On this page
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - User Guide:
+      - Overload Policies: user-guide/overload-policies.md
+      - Path Restriction: user-guide/rpc-paths.md
+      - Observability: user-guide/stats.md
+      - Client Helpers: user-guide/client-helpers.md
+      - Scale-out (SO_REUSEPORT): user-guide/scale-out.md
+  - API Reference:
+      - server: api-reference/server.md
+      - client: api-reference/client.md
+      - multiprocess: api-reference/multiprocess.md
+  - Architecture: architecture.md
+  - Benchmarks: benchmarks.md
+  - Security: security.md
+  - Contributing: contributing.md
+  - Code of Conduct: code-of-conduct.md
+  - Changelog: changelog.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/singh-sumit/xmlrpc_extended
+      name: GitHub
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/xmlrpc-extended/
+      name: PyPI
+  analytics:
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/thumb-up-outline
+          name: This page was helpful
+          data: 1
+          note: Thanks for your feedback!
+        - icon: material/thumb-down-outline
+          name: This page could be improved
+          data: 0
+          note: >-
+            Thanks for your feedback! Open a
+            <a href="https://github.com/singh-sumit/xmlrpc_extended/discussions">Discussion</a>
+            if you have suggestions.
+
+extra_css:
+  - stylesheets/extra.css

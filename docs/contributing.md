@@ -4,11 +4,12 @@ Thank you for your interest in contributing to `xmlrpc_extended`!
 
 ## Code of conduct
 
-Please read and follow [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+Please read and follow the [Code of Conduct](code-of-conduct.md).
 
 ## Reporting security issues
 
-Do **not** open public issues for security vulnerabilities. See [SECURITY.md](SECURITY.md) for the private reporting process.
+Do **not** open public issues for security vulnerabilities.
+See [Security](security.md) for the private reporting process.
 
 ## Opening issues
 
@@ -54,7 +55,7 @@ run automatically on `git commit`:
 | `ruff-format` | Code formatting |
 | `mypy` | Strict type checking on `src/` |
 
-Run manually on all files:
+Run all hooks manually:
 
 ```bash
 pre-commit run --all-files
@@ -66,44 +67,59 @@ Update hook versions:
 pre-commit autoupdate
 ```
 
+## Linting and type checking
+
+```bash
+# Lint (with auto-fix for safe issues)
+ruff check --fix src tests
+
+# Formatter
+ruff format src tests
+
+# Type check
+mypy src
+```
+
+## Running tests
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+Expected: **45 tests pass, 1 skipped** (the `SO_REUSEPORT` test skips on non-Linux).
+
 ## Build dependencies
 
 | Dependency   | Minimum version | Justification |
 |--------------|-----------------|---------------|
-| `setuptools` | `>= 64`        | First version with full PEP 621 (`[project]` table in `pyproject.toml`) and `[tool.setuptools.packages.find]` support. No compiled extensions are used, so no higher version is needed. |
+| `setuptools` | `>= 64`        | First version with full PEP 621 (`[project]` table in `pyproject.toml`) and `[tool.setuptools.packages.find]` support. |
 
-The project intentionally avoids a tight setuptools pin so that offline,
-air-gapped, and constrained CI environments can build the package with any
-setuptools release from 64 onward.
-
-## Local validation
+## Local build validation
 
 ```bash
 # Build sdist and wheel
-python -m pip install build
+pip install build
 python -m build
 
 # Install from wheel and run tests
-python -m pip install dist/*.whl --no-deps
-python -m unittest discover -s tests -v
-
-# Or install from sdist and run tests
-python -m pip install dist/*.tar.gz --no-deps
+pip install dist/*.whl --no-deps
 python -m unittest discover -s tests -v
 ```
 
-## Linting and type checking
+## Docs preview
 
 ```bash
-pip install ruff mypy
-ruff check src tests
-mypy src
+pip install -e ".[docs]"
+mkdocs serve
 ```
 
 ## Release process
 
-Releases are tagged on `main` and published to PyPI via GitHub Actions (see `.github/workflows/`).
-
 1. Update `CHANGELOG.md` under `[Unreleased]`.
 2. Bump the version in `pyproject.toml`.
 3. Create a GitHub release — the CI release workflow publishes to PyPI automatically.
+
+## Questions
+
+Open a [GitHub Discussion](https://github.com/singh-sumit/xmlrpc_extended/discussions)
+for questions that don't fit an issue.

@@ -24,10 +24,26 @@ classifiers = [
   "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
 ]
 
+[project.optional-dependencies]
+# Local development: pre-commit install && pip install -e ".[dev]"
+dev = [
+    "pre-commit>=3.7",
+    "ruff>=0.15",
+    "mypy>=1.10",
+    "build>=1.2",
+]
+# Documentation: pip install -e ".[docs]" && mkdocs serve
+docs = [
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.25",
+]
+
 [project.urls]
-Homepage = "https://github.com/singh-sumit/xmlrpc_extended"
+Homepage = "https://singh-sumit.github.io/xmlrpc_extended/"
 Repository = "https://github.com/singh-sumit/xmlrpc_extended"
 Issues = "https://github.com/singh-sumit/xmlrpc_extended/issues"
+Discuss = "https://github.com/singh-sumit/xmlrpc_extended/discussions"
+Changelog = "https://github.com/singh-sumit/xmlrpc_extended/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

@@ -10,11 +10,7 @@
 
 Please **do not** open a public GitHub issue for security vulnerabilities.
 
-Report security issues privately by emailing **singhsumit9824@gmail.com** with the subject line:
-
-```
-[xmlrpc_extended] Security vulnerability report
-```
+Use **[GitHub's private vulnerability reporting](https://github.com/singh-sumit/xmlrpc_extended/security/advisories/new)** to submit a confidential report.
 
 Include:
 - A description of the vulnerability and its potential impact.
@@ -22,6 +18,8 @@ Include:
 - The version(s) affected.
 
 You can expect an acknowledgement within **72 hours** and a resolution timeline within **14 days** for confirmed issues.
+
+For general security questions that are not sensitive, open a [GitHub Discussion](https://github.com/singh-sumit/xmlrpc_extended/discussions) instead.
 
 ---
 
@@ -105,4 +103,3 @@ Verify the distribution hash after download when operating in high-security envi
 - [ ] TLS terminated at a reverse proxy
 - [ ] Authentication enforced at the network or proxy layer
 - [ ] Package version pinned in requirements
-

@@ -76,10 +76,7 @@ def create_reuseport_socket(
         OSError: If ``SO_REUSEPORT`` is not supported on the current platform.
     """
     if not _is_reuseport_supported():
-        raise OSError(
-            "SO_REUSEPORT is not supported on this platform. "
-            "Linux kernel 3.9+ is required."
-        )
+        raise OSError("SO_REUSEPORT is not supported on this platform. Linux kernel 3.9+ is required.")
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
@@ -118,6 +115,7 @@ def spawn_workers(
     """
     if num_workers is None:
         import os
+
         num_workers = os.cpu_count() or 1
 
     processes = []

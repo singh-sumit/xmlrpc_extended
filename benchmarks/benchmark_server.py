@@ -26,15 +26,15 @@ import threading
 import time
 import xmlrpc.client
 import xmlrpc.server
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Generator
 
 from xmlrpc_extended import ServerOverloadPolicy, ThreadPoolXMLRPCServer
-
 
 # ---------------------------------------------------------------------------
 # Shared handler functions
 # ---------------------------------------------------------------------------
+
 
 def fast_handler(x: int) -> int:
     """Return immediately — CPU-minimal handler."""
@@ -50,6 +50,7 @@ def slow_handler(x: int, sleep: float = 0.05) -> int:
 # ---------------------------------------------------------------------------
 # Server context managers
 # ---------------------------------------------------------------------------
+
 
 @contextmanager
 def _simple_server() -> Generator[str, None, None]:
@@ -95,6 +96,7 @@ def _pool_server(max_workers: int = 8) -> Generator[str, None, None]:
 # ---------------------------------------------------------------------------
 # Benchmark runner
 # ---------------------------------------------------------------------------
+
 
 def run_scenario(
     url: str,

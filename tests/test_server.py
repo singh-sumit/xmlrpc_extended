@@ -281,6 +281,7 @@ class ThreadPoolXMLRPCServerTests(unittest.TestCase):
                     original_submit_request(*args, **kwargs)
                 if current_submit == 2:
                     second_request_queued.set()
+
             with mock.patch.object(server, "submit_request", side_effect=tracking_submit_request):
                 first = threading.Thread(target=lambda: xmlrpc.client.ServerProxy(url).block())
                 second = threading.Thread(target=lambda: xmlrpc.client.ServerProxy(url).block())
@@ -297,7 +298,6 @@ class ThreadPoolXMLRPCServerTests(unittest.TestCase):
                 second.join(timeout=2)
                 self.assertFalse(first.is_alive())
                 self.assertFalse(second.is_alive())
-
 
     def test_oversized_payload_does_not_log_when_log_requests_false(self):
         with running_server(max_request_size=32) as (_, url):
@@ -504,10 +504,15 @@ class RpcPathsTests(unittest.TestCase):
         port = int(url.rsplit(":", 1)[1])
         body = b"<?xml version='1.0'?><methodCall><methodName>ping</methodName><params/></methodCall>"
         conn = http.client.HTTPConnection(host, port, timeout=2)
-        conn.request("POST", path, body=body, headers={
-            "Content-Type": "text/xml",
-            "Content-Length": str(len(body)),
-        })
+        conn.request(
+            "POST",
+            path,
+            body=body,
+            headers={
+                "Content-Type": "text/xml",
+                "Content-Length": str(len(body)),
+            },
+        )
         status = conn.getresponse().status
         conn.close()
         return status
@@ -647,9 +652,10 @@ class Http503PolicyTests(unittest.TestCase):
             release.wait(timeout=2)
             return "done"
 
-        with running_server(
-            max_workers=1, max_pending=0, overload_policy=ServerOverloadPolicy.HTTP_503
-        ) as (server, url):
+        with running_server(max_workers=1, max_pending=0, overload_policy=ServerOverloadPolicy.HTTP_503) as (
+            server,
+            url,
+        ):
             server.register_function(block, "block")
             holder = threading.Thread(target=lambda: xmlrpc.client.ServerProxy(url).block())
             holder.start()
@@ -659,10 +665,15 @@ class Http503PolicyTests(unittest.TestCase):
             port = int(url.rsplit(":", 1)[1])
             body = b"<?xml version='1.0'?><methodCall><methodName>block</methodName><params/></methodCall>"
             conn = http.client.HTTPConnection(host, port, timeout=2)
-            conn.request("POST", "/", body=body, headers={
-                "Content-Type": "text/xml",
-                "Content-Length": str(len(body)),
-            })
+            conn.request(
+                "POST",
+                "/",
+                body=body,
+                headers={
+                    "Content-Type": "text/xml",
+                    "Content-Length": str(len(body)),
+                },
+            )
             response = conn.getresponse()
             self.assertEqual(503, response.status)
             conn.close()
@@ -679,9 +690,10 @@ class Http503PolicyTests(unittest.TestCase):
             release.wait(timeout=2)
             return "done"
 
-        with running_server(
-            max_workers=1, max_pending=0, overload_policy=ServerOverloadPolicy.HTTP_503
-        ) as (server, url):
+        with running_server(max_workers=1, max_pending=0, overload_policy=ServerOverloadPolicy.HTTP_503) as (
+            server,
+            url,
+        ):
             server.register_function(block, "block")
             holder = threading.Thread(target=lambda: xmlrpc.client.ServerProxy(url).block())
             holder.start()
@@ -691,10 +703,15 @@ class Http503PolicyTests(unittest.TestCase):
             port = int(url.rsplit(":", 1)[1])
             body = b"<?xml version='1.0'?><methodCall><methodName>block</methodName><params/></methodCall>"
             conn = http.client.HTTPConnection(host, port, timeout=2)
-            conn.request("POST", "/", body=body, headers={
-                "Content-Type": "text/xml",
-                "Content-Length": str(len(body)),
-            })
+            conn.request(
+                "POST",
+                "/",
+                body=body,
+                headers={
+                    "Content-Type": "text/xml",
+                    "Content-Length": str(len(body)),
+                },
+            )
             conn.getresponse().read()
             conn.close()
 
