@@ -624,6 +624,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#your-first-asgi-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your first ASGI server
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#setting-up-for-development" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1301,6 +1312,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#your-first-asgi-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your first ASGI server
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#setting-up-for-development" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1496,28 +1518,62 @@
 <h2 id="running-the-test-suite">Running the test suite<a class="headerlink" href="#running-the-test-suite" title="Permanent link">&para;</a></h2>
 <div class="language-console highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="go">python -m unittest discover -s tests -v</span>
 </span></code></pre></div>
-<p>Expected: <strong>45 tests pass, 1 skipped</strong> (the <code>SO_REUSEPORT</code> test skips on non-Linux).</p>
+<p>Expected: <strong>102 tests pass, 1 skipped</strong> (the <code>SO_REUSEPORT</code> test skips on non-Linux).</p>
+<hr />
+<h2 id="your-first-asgi-server">Your first ASGI server<a class="headerlink" href="#your-first-asgi-server" title="Permanent link">&para;</a></h2>
+<p><code>XMLRPCASGIApp</code> lets you host XML-RPC on any ASGI server (uvicorn, hypercorn, granian) without running <code>ThreadPoolXMLRPCServer</code> at all.</p>
+<p>Install an ASGI server:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="go">pip install uvicorn</span>
+</span></code></pre></div>
+<p>Create <code>asgi_server.py</code>:</p>
+<div class="language-python highlight"><span class="filename">asgi_server.py</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">xmlrpc_extended.asgi</span><span class="w"> </span><span class="kn">import</span> <span class="n">XMLRPCASGIApp</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">app</span> <span class="o">=</span> <span class="n">XMLRPCASGIApp</span><span class="p">()</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">left</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">right</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="k">return</span> <span class="n">left</span> <span class="o">+</span> <span class="n">right</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="k">def</span><span class="w"> </span><span class="nf">multiply</span><span class="p">(</span><span class="n">left</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">right</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>  <span class="c1"># sync — runs in thread pool</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>    <span class="k">return</span> <span class="n">left</span> <span class="o">*</span> <span class="n">right</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="n">app</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="n">add</span><span class="p">,</span> <span class="s2">&quot;add&quot;</span><span class="p">)</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="n">app</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="n">multiply</span><span class="p">,</span> <span class="s2">&quot;multiply&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Run it:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="go">uvicorn asgi_server:app --host 127.0.0.1 --port 8000</span>
+</span></code></pre></div>
+<p>Call it with any standard XML-RPC client:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">xmlrpc_extended.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">XMLRPCClient</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="k">with</span> <span class="n">XMLRPCClient</span><span class="p">(</span><span class="s2">&quot;http://127.0.0.1:8000/&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span> <span class="k">as</span> <span class="n">proxy</span><span class="p">:</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">proxy</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>       <span class="c1"># → 3</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">proxy</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>  <span class="c1"># → 42</span>
+</span></code></pre></div>
+<p>See the <a href="../user-guide/asgi/">ASGI Integration</a> guide for deployment recipes, mount patterns, and testing with <code>httpx</code>.</p>
 <hr />
 <h2 id="setting-up-for-development">Setting up for development<a class="headerlink" href="#setting-up-for-development" title="Permanent link">&para;</a></h2>
-<div class="language-console highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="gp"># </span><span class="m">1</span>.<span class="w"> </span>Clone<span class="w"> </span>and<span class="w"> </span>create<span class="w"> </span>a<span class="w"> </span>virtual<span class="w"> </span>environment
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="go">git clone https://github.com/singh-sumit/xmlrpc_extended.git</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="go">cd xmlrpc_extended</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="go">python -m venv .venv &amp;&amp; source .venv/bin/activate</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="gp"># </span><span class="m">2</span>.<span class="w"> </span>Install<span class="w"> </span>dev<span class="w"> </span>dependencies
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="go">pip install -e &quot;.[dev]&quot;</span>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="gp"># </span><span class="m">3</span>.<span class="w"> </span>Install<span class="w"> </span>pre-commit<span class="w"> </span>hooks<span class="w"> </span><span class="o">(</span>runs<span class="w"> </span>ruff<span class="w"> </span>+<span class="w"> </span>mypy<span class="w"> </span>on<span class="w"> </span>every<span class="w"> </span>commit<span class="o">)</span>
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="go">pre-commit install</span>
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="gp"># </span><span class="m">4</span>.<span class="w"> </span>Verify<span class="w"> </span>everything<span class="w"> </span>is<span class="w"> </span>clean
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="go">pre-commit run --all-files</span>
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="go">python -m unittest discover -s tests -v</span>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="gp"># </span><span class="m">1</span>.<span class="w"> </span>Clone<span class="w"> </span>and<span class="w"> </span>create<span class="w"> </span>a<span class="w"> </span>virtual<span class="w"> </span>environment
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="go">git clone https://github.com/singh-sumit/xmlrpc_extended.git</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="go">cd xmlrpc_extended</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="go">python -m venv .venv &amp;&amp; source .venv/bin/activate</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="gp"># </span><span class="m">2</span>.<span class="w"> </span>Install<span class="w"> </span>dev<span class="w"> </span>dependencies
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="go">pip install -e &quot;.[dev]&quot;</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="gp"># </span><span class="m">3</span>.<span class="w"> </span>Install<span class="w"> </span>pre-commit<span class="w"> </span>hooks<span class="w"> </span><span class="o">(</span>runs<span class="w"> </span>ruff<span class="w"> </span>+<span class="w"> </span>mypy<span class="w"> </span>on<span class="w"> </span>every<span class="w"> </span>commit<span class="o">)</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="go">pre-commit install</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="gp"># </span><span class="m">4</span>.<span class="w"> </span>Verify<span class="w"> </span>everything<span class="w"> </span>is<span class="w"> </span>clean
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="go">pre-commit run --all-files</span>
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="go">python -m unittest discover -s tests -v</span>
 </span></code></pre></div>
 <hr />
 <h2 id="serving-the-documentation-locally">Serving the documentation locally<a class="headerlink" href="#serving-the-documentation-locally" title="Permanent link">&para;</a></h2>
-<div class="language-console highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="go">pip install -e &quot;.[docs]&quot;</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="go">mkdocs serve</span>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="go">pip install -e &quot;.[docs]&quot;</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="go">mkdocs serve</span>
 </span></code></pre></div>
 <p>Open <a href="http://127.0.0.1:8000">http://127.0.0.1:8000</a>.</p>
 
