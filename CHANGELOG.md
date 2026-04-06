@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `ConstructorValidationTests`: 13 new tests covering invalid `max_workers`, `max_pending`, `request_queue_size`, `max_request_size`, custom fault code/string, `bind_and_activate=False`, `allow_none`, `use_builtin_types`, and policy string normalization.
+- `ExecutorShutdownTests`: tests for `shutdown_executor` idempotency and custom fault response.
+- README: overload semantics section with capacity model table, policy behavior matrix, and recommended defaults.
+
 ## [0.1.0] - 2026-04-06
 
 ### Added
