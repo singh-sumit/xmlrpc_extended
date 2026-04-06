@@ -1,6 +1,13 @@
 # xmlrpc_extended
 
+[![CI](https://github.com/singh-sumit/xmlrpc_extended/actions/workflows/ci.yml/badge.svg)](https://github.com/singh-sumit/xmlrpc_extended/actions/workflows/ci.yml)
+[![Docs](https://github.com/singh-sumit/xmlrpc_extended/actions/workflows/docs.yml/badge.svg)](https://singh-sumit.github.io/xmlrpc_extended/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Discussions](https://img.shields.io/badge/Discussions-GitHub-brightgreen)](https://github.com/singh-sumit/xmlrpc_extended/discussions)
+
+**[📖 Full documentation](https://singh-sumit.github.io/xmlrpc_extended/)** · [Issues](https://github.com/singh-sumit/xmlrpc_extended/issues) · [Discussions](https://github.com/singh-sumit/xmlrpc_extended/discussions)
 
 `xmlrpc_extended` is a small, dependency-light package that upgrades Python's
 stdlib XML-RPC server with bounded thread-pool concurrency and explicit overload

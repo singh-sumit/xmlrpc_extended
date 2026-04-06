@@ -34,7 +34,7 @@ This Code of Conduct applies within all community spaces and when an individual 
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project maintainer at **singhsumit9824@gmail.com**. All complaints will be reviewed and investigated promptly and fairly.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported via [GitHub Discussions](https://github.com/singh-sumit/xmlrpc_extended/discussions) or through [GitHub's contact support form](https://support.github.com/contact). All complaints will be reviewed and investigated promptly and fairly.
 
 ## Attribution
 

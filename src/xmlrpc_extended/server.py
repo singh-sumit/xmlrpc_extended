@@ -13,7 +13,20 @@ from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 
 
 class ServerOverloadPolicy(str, Enum):
-    """How the server reacts when no worker capacity is available."""
+    """How the server reacts when no worker capacity is available.
+
+    Members:
+        BLOCK: Block the accept thread until a worker slot opens.  No
+            request is ever actively rejected; excess connections queue at
+            the OS TCP backlog level.
+        CLOSE: Close the connection immediately without sending a response.
+            The client receives a connection-reset error.
+        FAULT: Return an XML-RPC ``200 OK`` response containing a fault
+            element with the configured ``overload_fault_code`` and
+            ``overload_fault_string``.
+        HTTP_503: Return an HTTP ``503 Service Unavailable`` response with
+            a ``Retry-After: 1`` header.
+    """
 
     BLOCK = "block"
     CLOSE = "close"
@@ -23,7 +36,24 @@ class ServerOverloadPolicy(str, Enum):
 
 @dataclass(frozen=True)
 class ServerStats:
-    """Immutable snapshot of server activity counters."""
+    """Immutable point-in-time snapshot of server activity counters.
+
+    Returned by `ThreadPoolXMLRPCServer.stats()`.  All fields are
+    non-negative integers.  Counters (``rejected_*``, ``completed``,
+    ``errored``) are cumulative since the server started.
+
+    Attributes:
+        active: Requests currently executing in worker threads.
+        queued: Requests submitted to the thread pool but not yet started.
+        rejected_close: Cumulative rejections via the ``CLOSE`` policy.
+        rejected_fault: Cumulative rejections via the ``FAULT`` policy.
+        rejected_503: Cumulative rejections via the ``HTTP_503`` policy.
+        completed: Cumulative requests that finished (including those where
+            the XML-RPC method raised an application exception — those are
+            still sent as valid fault responses).
+        errored: Cumulative requests that failed with a transport-level error
+            (e.g. broken socket after partial write).
+    """
 
     active: int
     queued: int
@@ -93,7 +123,21 @@ class _StatsTracker:
 
 @dataclass(frozen=True)
 class XMLRPCServerConfig:
-    """Configuration for :class:`ThreadPoolXMLRPCServer`."""
+    """Resolved, validated configuration for `ThreadPoolXMLRPCServer`.
+
+    Created internally from the constructor arguments.  Access it via
+    ``server.config`` to inspect the active settings.
+
+    Attributes:
+        max_workers: Maximum concurrent worker threads.
+        max_pending: Maximum requests queued beyond the active pool
+            (``None`` in constructor resolves to ``max_workers`` here).
+        request_queue_size: OS-level TCP accept backlog.
+        overload_policy: Active overload policy enum member.
+        max_request_size: Maximum body size in bytes.
+        overload_fault_code: XML-RPC fault code for the ``FAULT`` policy.
+        overload_fault_string: XML-RPC fault string for the ``FAULT`` policy.
+    """
 
     max_workers: int = 8
     max_pending: int | None = None
@@ -143,8 +187,28 @@ class LimitedXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
 class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
     """A drop-in XML-RPC server that dispatches requests through a thread pool.
 
-    The constructor keeps stdlib parameter names such as ``requestHandler`` and
-    ``logRequests`` for compatibility with :class:`SimpleXMLRPCServer`.
+    Replaces `SimpleXMLRPCServer`'s single-threaded request handling with a
+    `ThreadPoolExecutor` and an explicit semaphore so that concurrency and
+    pending request depth are both bounded.
+
+    The constructor is fully compatible with `SimpleXMLRPCServer` and adds
+    keyword-only parameters for concurrency control, overload policy, and
+    request size limiting.
+
+    Example:
+        ```python
+        from xmlrpc_extended import ServerOverloadPolicy, ThreadPoolXMLRPCServer
+
+        server = ThreadPoolXMLRPCServer(
+            ("127.0.0.1", 8000),
+            max_workers=8,
+            max_pending=16,
+            overload_policy=ServerOverloadPolicy.HTTP_503,
+            logRequests=False,
+        )
+        server.register_function(lambda a, b: a + b, "add")
+        server.serve_forever()
+        ```
     """
 
     _config: XMLRPCServerConfig
@@ -168,6 +232,44 @@ class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
         overload_fault_string: str = XMLRPCServerConfig.overload_fault_string,
         rpc_paths: tuple[str, ...] | None = None,
     ) -> None:
+        """Initialise the server.
+
+        Args:
+            addr: ``(host, port)`` tuple.  Use port ``0`` to let the OS choose
+                a free port (useful in tests).
+            requestHandler: Request handler class.  Defaults to
+                `LimitedXMLRPCRequestHandler` which enforces ``max_request_size``.
+            logRequests: Whether to log each request to stderr.
+            allow_none: Whether ``None`` values are permitted in XML-RPC payloads.
+            encoding: XML encoding; ``None`` defaults to UTF-8.
+            bind_and_activate: If ``False``, skip binding and activating the
+                socket (useful when supplying a pre-bound `SO_REUSEPORT` socket).
+            use_builtin_types: Map XML-RPC ``dateTime``/``base64`` to Python
+                built-in types.
+            max_workers: Maximum number of requests executing concurrently in the
+                thread pool.  Must be ≥ 1.
+            max_pending: Maximum number of additional requests that may queue
+                while all workers are busy.  ``None`` (default) resolves to
+                ``max_workers``, giving total capacity of ``2 × max_workers``.
+                Use ``0`` for fail-fast behaviour.
+            request_queue_size: OS-level TCP accept backlog size.  Controls how
+                many connections the kernel will hold before refusing new ones.
+            overload_policy: What to do when total capacity is exhausted.
+                Accepts a `ServerOverloadPolicy` member or its string value
+                (``"block"``, ``"close"``, ``"fault"``, ``"http_503"``).
+            max_request_size: Maximum accepted request body in bytes (default 1 MiB).
+                Requests larger than this receive ``413 Payload Too Large``.
+            overload_fault_code: XML-RPC fault code returned when
+                ``overload_policy=FAULT``.
+            overload_fault_string: XML-RPC fault string returned when
+                ``overload_policy=FAULT``.
+            rpc_paths: Accepted URL paths.  ``None`` uses the stdlib defaults
+                (``"/"`` and ``"/RPC2"``).  All other paths return ``404``.
+
+        Raises:
+            ValueError: If ``max_workers < 1``, ``max_pending < 0``,
+                ``request_queue_size < 1``, or ``max_request_size < 1``.
+        """
         normalized_policy = ServerOverloadPolicy(overload_policy)
         effective_pending = max_workers if max_pending is None else max_pending
         total_capacity = max_workers + effective_pending
@@ -216,7 +318,22 @@ class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
         return self._config
 
     def stats(self) -> ServerStats:
-        """Return a point-in-time snapshot of server activity counters."""
+        """Return a point-in-time snapshot of server activity counters.
+
+        Thread-safe; acquires the internal stats lock for the duration of
+        the snapshot copy.  Safe to call from any thread, including from
+        registered RPC methods.
+
+        Returns:
+            A `ServerStats` frozen dataclass with counters current at the
+            moment of the call.
+
+        Example:
+            ```python
+            snap = server.stats()
+            print(f"active={snap.active} completed={snap.completed}")
+            ```
+        """
         return self._stats.snapshot()
 
     def process_request(self, request: Any, client_address: tuple[str, int]) -> None:
@@ -278,11 +395,7 @@ class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
         )
         body = payload.encode(self.encoding or "utf-8")
         response = (
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/xml\r\n"
-            f"Content-Length: {len(body)}\r\n"
-            "Connection: close\r\n"
-            "\r\n"
+            f"HTTP/1.1 200 OK\r\nContent-Type: text/xml\r\nContent-Length: {len(body)}\r\nConnection: close\r\n\r\n"
         ).encode("ascii") + body
         try:
             request.sendall(response)

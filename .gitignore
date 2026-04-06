@@ -3,3 +3,9 @@ __pycache__/
 build/
 dist/
 src/*.egg-info/
+.venv/
+*.egg-info/
+# MkDocs build output
+site/
+# pre-commit cache
+.pre-commit-cache/
