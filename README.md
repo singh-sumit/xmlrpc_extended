@@ -42,6 +42,38 @@ With `max_workers=8, max_pending=16`, up to 8 requests run concurrently and up
 to 16 additional requests may wait for a worker. After that, the configured
 overload policy is applied.
 
+## Overload semantics and queueing model
+
+### Capacity model
+
+```
+total outstanding capacity = max_workers + max_pending
+```
+
+| Parameter | Role |
+|-----------|------|
+| `max_workers` | Maximum requests executing concurrently in the thread pool |
+| `max_pending` | Maximum requests waiting for a free worker slot |
+| `request_queue_size` | OS-level TCP accept backlog (before the application sees the request) |
+
+**Default:** `max_pending=None` resolves to `max_workers`, so by default the total capacity is `2 × max_workers`. For latency-sensitive deployments set `max_pending=0` to fail fast instead of queuing.
+
+### Overload policy behavior
+
+| Policy | What happens when capacity is exhausted |
+|--------|----------------------------------------|
+| `BLOCK` (default) | The accept thread blocks until a worker slot opens. Requests queue at the OS level. Suitable for trusted, low-variance load. |
+| `CLOSE` | The connection is closed immediately without sending a response. The client receives a connection-reset error. Suitable for shedding load fast. |
+| `FAULT` | An XML-RPC fault response is returned with the configured `overload_fault_code` and `overload_fault_string`. Clients that speak XML-RPC can distinguish overload from method errors. |
+
+### Recommended defaults
+
+| Deployment | Suggested settings |
+|------------|--------------------|
+| Embedded / internal tool | `max_workers=4`, `max_pending=None` (= 4), `BLOCK` |
+| Service with SLA | `max_workers=N`, `max_pending=0`, `FAULT` or `CLOSE` |
+| Behind a load balancer | `max_workers=N`, `max_pending=small`, `CLOSE` |
+
 ## Development approach
 
 This repository was bootstrapped with TDD:

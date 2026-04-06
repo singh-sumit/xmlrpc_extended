@@ -342,5 +342,159 @@ class ThreadPoolXMLRPCServerTests(unittest.TestCase):
             connection.close()
 
 
+class ConstructorValidationTests(unittest.TestCase):
+    """Constructor rejects invalid configuration values."""
+
+    def test_rejects_zero_max_workers(self):
+        with self.assertRaises(ValueError):
+            ThreadPoolXMLRPCServer(("127.0.0.1", 0), max_workers=0, bind_and_activate=False)
+
+    def test_rejects_negative_max_workers(self):
+        with self.assertRaises(ValueError):
+            ThreadPoolXMLRPCServer(("127.0.0.1", 0), max_workers=-1, bind_and_activate=False)
+
+    def test_rejects_negative_max_pending(self):
+        with self.assertRaises(ValueError):
+            ThreadPoolXMLRPCServer(("127.0.0.1", 0), max_pending=-1, bind_and_activate=False)
+
+    def test_rejects_zero_request_queue_size(self):
+        with self.assertRaises(ValueError):
+            ThreadPoolXMLRPCServer(("127.0.0.1", 0), request_queue_size=0, bind_and_activate=False)
+
+    def test_rejects_zero_max_request_size(self):
+        with self.assertRaises(ValueError):
+            ThreadPoolXMLRPCServer(("127.0.0.1", 0), max_request_size=0, bind_and_activate=False)
+
+    def test_rejects_negative_max_request_size(self):
+        with self.assertRaises(ValueError):
+            ThreadPoolXMLRPCServer(("127.0.0.1", 0), max_request_size=-1, bind_and_activate=False)
+
+    def test_config_reflects_constructor_arguments(self):
+        server = ThreadPoolXMLRPCServer(
+            ("127.0.0.1", 0),
+            max_workers=4,
+            max_pending=8,
+            overload_policy=ServerOverloadPolicy.FAULT,
+            max_request_size=512,
+            overload_fault_code=-9999,
+            overload_fault_string="custom overload",
+            bind_and_activate=False,
+        )
+        try:
+            self.assertEqual(4, server.config.max_workers)
+            self.assertEqual(8, server.config.max_pending)
+            self.assertIs(ServerOverloadPolicy.FAULT, server.config.overload_policy)
+            self.assertEqual(512, server.config.max_request_size)
+            self.assertEqual(-9999, server.config.overload_fault_code)
+            self.assertEqual("custom overload", server.config.overload_fault_string)
+        finally:
+            server.shutdown_executor(wait=False)
+
+    def test_max_pending_defaults_to_max_workers_when_none(self):
+        server = ThreadPoolXMLRPCServer(
+            ("127.0.0.1", 0),
+            max_workers=3,
+            max_pending=None,
+            bind_and_activate=False,
+        )
+        try:
+            self.assertEqual(3, server.config.max_pending)
+        finally:
+            server.shutdown_executor(wait=False)
+
+    def test_accepts_overload_policy_as_string(self):
+        server = ThreadPoolXMLRPCServer(
+            ("127.0.0.1", 0),
+            overload_policy="close",
+            bind_and_activate=False,
+        )
+        try:
+            self.assertIs(ServerOverloadPolicy.CLOSE, server.config.overload_policy)
+        finally:
+            server.shutdown_executor(wait=False)
+            server.server_close()
+
+    def test_rejects_invalid_overload_policy_string(self):
+        with self.assertRaises(ValueError):
+            ThreadPoolXMLRPCServer(
+                ("127.0.0.1", 0),
+                overload_policy="invalid",
+                bind_and_activate=False,
+            )
+
+    def test_bind_and_activate_false_does_not_bind(self):
+        server = ThreadPoolXMLRPCServer(("127.0.0.1", 0), bind_and_activate=False)
+        try:
+            # Server was constructed without binding — server_address port is 0
+            self.assertEqual(0, server.server_address[1])
+        finally:
+            server.shutdown_executor(wait=False)
+            server.server_close()
+
+    def test_allow_none_propagated(self):
+        server = ThreadPoolXMLRPCServer(("127.0.0.1", 0), allow_none=True, bind_and_activate=False)
+        try:
+            self.assertTrue(server.allow_none)
+        finally:
+            server.shutdown_executor(wait=False)
+
+    def test_use_builtin_types_propagated(self):
+        server = ThreadPoolXMLRPCServer(("127.0.0.1", 0), use_builtin_types=True, bind_and_activate=False)
+        try:
+            self.assertTrue(server.use_builtin_types)
+        finally:
+            server.shutdown_executor(wait=False)
+
+
+class ExecutorShutdownTests(unittest.TestCase):
+    """Executor shutdown behavior."""
+
+    def test_shutdown_executor_is_idempotent(self):
+        server = ThreadPoolXMLRPCServer(("127.0.0.1", 0), bind_and_activate=False)
+        try:
+            server.shutdown_executor(wait=True)
+            # Second call must not raise
+            server.shutdown_executor(wait=True)
+        finally:
+            server.server_close()
+
+    def test_custom_fault_code_and_string_returned_by_fault_policy(self):
+        started = threading.Event()
+        release = threading.Event()
+
+        def block():
+            started.set()
+            release.wait(timeout=2)
+            return "done"
+
+        with ThreadPoolXMLRPCServer(
+            ("127.0.0.1", 0),
+            max_workers=1,
+            max_pending=0,
+            overload_policy=ServerOverloadPolicy.FAULT,
+            overload_fault_code=-1234,
+            overload_fault_string="too busy",
+            logRequests=False,
+        ) as server:
+            server.register_function(block, "block")
+            thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True)
+            thread.start()
+            url = f"http://127.0.0.1:{server.server_address[1]}"
+
+            holder = threading.Thread(target=lambda: xmlrpc.client.ServerProxy(url).block())
+            holder.start()
+            started.wait(timeout=2)
+
+            with self.assertRaises(xmlrpc.client.Fault) as ctx:
+                xmlrpc.client.ServerProxy(url).block()
+
+            self.assertEqual(-1234, ctx.exception.faultCode)
+            self.assertIn("too busy", ctx.exception.faultString)
+
+            release.set()
+            holder.join(timeout=2)
+            server.shutdown()
+
+
 if __name__ == "__main__":
     unittest.main()
