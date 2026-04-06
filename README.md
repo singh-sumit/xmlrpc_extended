@@ -15,13 +15,14 @@ handling.
 
 ## Current package scope
 
-- `ThreadPoolXMLRPCServer` for drop-in `SimpleXMLRPCServer` style usage
-- bounded worker and pending-request limits
-- overload policies: block, close, or XML-RPC fault
+- `ThreadPoolXMLRPCServer` — drop-in `SimpleXMLRPCServer` replacement with a bounded `ThreadPoolExecutor`
+- bounded worker and pending-request limits with configurable overload policies (block, close, fault, HTTP 503)
 - graceful executor shutdown
 - request body size limiting through `LimitedXMLRPCRequestHandler`
-- `max_pending` counts queued requests beyond the active worker pool; total
-  outstanding capacity is `max_workers + max_pending`
+- `max_pending` counts queued requests beyond the active worker pool; total outstanding capacity is `max_workers + max_pending`
+- `XMLRPCClient` context manager with configurable timeout
+- `SO_REUSEPORT` scale-out helpers for Linux (`xmlrpc_extended.multiprocess`)
+- `XMLRPCASGIApp` — ASGI 3 adapter; deploy on uvicorn/hypercorn/granian with `async def` and sync handlers
 
 ## Quickstart
 
@@ -168,7 +169,10 @@ python -m unittest discover -s tests -v
 
 ```bash
 pip install .
+# Thread-pool server vs stdlib SimpleXMLRPCServer
 python benchmarks/benchmark_server.py --requests 200 --clients 8 --sleep 0.02
+# ASGI adapter in-process benchmark
+python benchmarks/benchmark_asgi.py
 ```
 
 ## Security
@@ -202,19 +206,22 @@ constructor.
 |-----------|--------|-------------|
 | M2 | 0.3.0 | Metrics hooks, observability examples, benchmarks ✅ |
 | M3 | 0.4.0 | Multi-process / SO_REUSEPORT, HTTP 503 rejection, client helpers ✅ |
-| M4 | 0.5.0+ | Optional ASGI/async integration (see below) |
+| M4 | 0.5.0 | ASGI adapter (`XMLRPCASGIApp`) ✅ |
 
-### Async / ASGI integration (M4)
+### ASGI / async integration
 
-An optional ASGI adapter for async frameworks (Starlette, FastAPI, etc.) is planned for M4. Design goals:
+`XMLRPCASGIApp` is a drop-in ASGI 3 adapter bundled with the core package (no extra install required). Deploy on any ASGI server:
 
-- **Core package stays sync** — no async dependencies imposed on existing users.
-- **Optional extra** — installed via `pip install xmlrpc_extended[asgi]`.
-- **Adapter pattern** — wraps the XML-RPC dispatcher as an ASGI app, delegating request routing to the framework.
+```python
+from xmlrpc_extended.asgi import XMLRPCASGIApp
 
-When to prefer async over threads:
-- You already run an ASGI framework (Starlette, Litestar) and want to co-host XML-RPC.
-- Handler concurrency is I/O-bound and you want to avoid thread overhead at very high connection counts.
-- For CPU-bound workloads, prefer multi-process (`xmlrpc_extended.multiprocess`) regardless.
+app = XMLRPCASGIApp()
 
-- richer operational metrics and examples
+async def greet(name: str) -> str:
+    return f"Hello, {name}!"
+
+app.register_function(greet, "greet")
+# uvicorn your_module:app --host 127.0.0.1 --port 8000
+```
+
+Sync handlers run in a thread pool via `asyncio.to_thread`; `async def` handlers execute directly in the event loop. See the [ASGI Integration guide](https://singh-sumit.github.io/xmlrpc_extended/user-guide/asgi/) for deployment recipes, testing patterns, and migration notes from `ThreadPoolXMLRPCServer`.

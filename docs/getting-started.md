@@ -105,7 +105,57 @@ with XMLRPCClient("http://127.0.0.1:8000/", timeout=5.0) as proxy:
 python -m unittest discover -s tests -v
 ```
 
-Expected: **45 tests pass, 1 skipped** (the `SO_REUSEPORT` test skips on non-Linux).
+Expected: **102 tests pass, 1 skipped** (the `SO_REUSEPORT` test skips on non-Linux).
+
+---
+
+## Your first ASGI server
+
+`XMLRPCASGIApp` lets you host XML-RPC on any ASGI server (uvicorn, hypercorn, granian) without running `ThreadPoolXMLRPCServer` at all.
+
+Install an ASGI server:
+
+```console
+pip install uvicorn
+```
+
+Create `asgi_server.py`:
+
+```python title="asgi_server.py"
+from xmlrpc_extended.asgi import XMLRPCASGIApp
+
+app = XMLRPCASGIApp()
+
+
+async def add(left: int, right: int) -> int:
+    return left + right
+
+
+def multiply(left: int, right: int) -> int:  # sync — runs in thread pool
+    return left * right
+
+
+app.register_function(add, "add")
+app.register_function(multiply, "multiply")
+```
+
+Run it:
+
+```console
+uvicorn asgi_server:app --host 127.0.0.1 --port 8000
+```
+
+Call it with any standard XML-RPC client:
+
+```python
+from xmlrpc_extended.client import XMLRPCClient
+
+with XMLRPCClient("http://127.0.0.1:8000/", timeout=5.0) as proxy:
+    print(proxy.add(1, 2))       # → 3
+    print(proxy.multiply(6, 7))  # → 42
+```
+
+See the [ASGI Integration](user-guide/asgi.md) guide for deployment recipes, mount patterns, and testing with `httpx`.
 
 ---
 

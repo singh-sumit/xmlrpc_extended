@@ -18,6 +18,7 @@
 - **Path restriction** — accept XML-RPC only on specific URL paths
 - **Client helpers** — `XMLRPCClient` context manager with configurable timeout
 - **Linux scale-out** — `SO_REUSEPORT` multi-process workers via `xmlrpc_extended.multiprocess`
+- **ASGI adapter** — `XMLRPCASGIApp` for uvicorn/hypercorn/granian; `async def` handlers + sync thread pool
 - **Zero dependencies** — pure stdlib; no pip-install surprise transitive deps
 
 ---
@@ -74,7 +75,7 @@ with XMLRPCClient("http://127.0.0.1:8000/", timeout=5.0) as proxy:
 
 - :material-book-open-variant: **[User Guide](user-guide/overload-policies.md)**
 
-    Deep dives into overload policies, path restriction, metrics, client helpers, and scale-out.
+    Deep dives into overload policies, path restriction, metrics, client helpers, scale-out, and ASGI deployment.
 
 - :material-code-braces: **[API Reference](api-reference/server.md)**
 
@@ -82,11 +83,11 @@ with XMLRPCClient("http://127.0.0.1:8000/", timeout=5.0) as proxy:
 
 - :material-sitemap: **[Architecture](architecture.md)**
 
-    Request lifecycle, threading model, and class hierarchy as Mermaid diagrams.
+    Request lifecycle, threading model, ASGI adapter, and class hierarchy as Mermaid diagrams.
 
 - :material-chart-bar: **[Benchmarks](benchmarks.md)**
 
-    Real numbers: `ThreadPoolXMLRPCServer` vs `SimpleXMLRPCServer` across different workload profiles.
+    Real numbers: `ThreadPoolXMLRPCServer` vs `SimpleXMLRPCServer` and `XMLRPCASGIApp` across different workload profiles.
 
 - :material-shield-lock: **[Security](security.md)**
 
