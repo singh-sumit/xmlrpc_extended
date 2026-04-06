@@ -29,7 +29,8 @@
 | `tests/test_server.py` | 55+ unit tests for server (AAA pattern) |
 | `tests/test_extras.py` | Tests for client and multiprocess (AAA pattern) |
 | `tests/test_asgi.py` | 45 ASGI tests (AAA pattern, httpx.ASGITransport) |
-| `benchmarks/benchmark_asgi.py` | In-process ASGI benchmark |
+| `benchmarks/benchmark_all.py` | Unified comparison: Simple, Threaded, ThreadPool, ASGI |
+| `benchmarks/benchmark_asgi.py` | Focused in-process ASGI benchmark |
 | `AGENTS.md` | Full AI agent instructions (read this first) |
 
 ---
@@ -79,6 +80,9 @@ mypy src
 
 # All in one (pre-commit)
 pre-commit run --all-files
+
+# All implementations benchmark
+python benchmarks/benchmark_all.py
 
 # ASGI benchmark
 python benchmarks/benchmark_asgi.py

@@ -169,10 +169,12 @@ python -m unittest discover -s tests -v
 
 ```bash
 pip install .
-# Thread-pool server vs stdlib SimpleXMLRPCServer
-python benchmarks/benchmark_server.py --requests 200 --clients 8 --sleep 0.02
-# ASGI adapter in-process benchmark
+# All implementations compared side by side (Simple, Threaded, ThreadPool, ASGI)
+python benchmarks/benchmark_all.py
+# Focused ASGI in-process benchmark (higher-concurrency ASGI tuning)
 python benchmarks/benchmark_asgi.py
+# Thread-pool server vs stdlib SimpleXMLRPCServer (legacy script)
+python benchmarks/benchmark_server.py --requests 200 --clients 8 --sleep 0.02
 ```
 
 ## Security
