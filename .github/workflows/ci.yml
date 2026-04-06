@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - copilot/**
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install build tool
+        run: python -m pip install build
+
+      - name: Build sdist and wheel
+        run: python -m build
+
+      - name: Install from wheel
+        run: python -m pip install dist/*.whl --no-deps
+
+      - name: Run tests (wheel)
+        run: python -m unittest discover -s tests -v
+
+      - name: Uninstall package
+        run: python -m pip uninstall -y xmlrpc_extended
+
+      - name: Install from sdist
+        run: python -m pip install dist/*.tar.gz --no-deps
+
+      - name: Run tests (sdist)
+        run: python -m unittest discover -s tests -v
