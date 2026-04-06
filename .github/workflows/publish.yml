@@ -72,12 +72,30 @@ jobs:
           name: dist
           path: dist/
 
+      - name: Verify TESTPYPI_API_TOKEN is configured
+        env:
+          TOKEN: ${{ secrets.TESTPYPI_API_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::TESTPYPI_API_TOKEN secret is not set."
+            echo "Go to: Settings → Secrets and variables → Actions → New repository secret"
+            echo "Name: TESTPYPI_API_TOKEN  Value: your TestPyPI API token (starts with 'pypi-')"
+            exit 1
+          fi
+          # Show only whether token looks like a valid PyPI token (starts with pypi-)
+          if [[ "$TOKEN" == pypi-* ]]; then
+            echo "TESTPYPI_API_TOKEN: set and starts with 'pypi-' ✓"
+          else
+            echo "::warning::TESTPYPI_API_TOKEN is set but does not start with 'pypi-'. TestPyPI tokens should start with 'pypi-'."
+          fi
+
       - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
           password: ${{ secrets.TESTPYPI_API_TOKEN }}
           skip-existing: true
+          verbose: true
 
   # ── 3. Verify install from TestPyPI ──────────────────────────────────────
   verify-testpypi:
