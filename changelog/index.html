@@ -1200,9 +1200,24 @@
 <p>All notable changes to this project will be documented in this file.</p>
 <p>The format is based on <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>,
 and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
-<h2 id="unreleased"><a href="https://github.com/singh-sumit/xmlrpc_extended/compare/v0.1.0...HEAD">Unreleased</a><a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
-<h2 id="010-2026-04-06"><a href="https://github.com/singh-sumit/xmlrpc_extended/releases/tag/v0.1.0">0.1.0</a> - 2026-04-06<a class="headerlink" href="#010-2026-04-06" title="Permanent link">&para;</a></h2>
+<h2 id="unreleased"><a href="https://github.com/singh-sumit/xmlrpc_extended/compare/v1.0.0rc1...HEAD">Unreleased</a><a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h2 id="100rc1-2026-04-06"><a href="https://github.com/singh-sumit/xmlrpc_extended/compare/v0.1.0...v1.0.0rc1">1.0.0rc1</a> - 2026-04-06<a class="headerlink" href="#100rc1-2026-04-06" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>connection_timeout</code> constructor parameter on <code>ThreadPoolXMLRPCServer</code> — sets a
+  per-connection socket read timeout so stalled or slow clients cannot hold a worker
+  thread indefinitely.  Defaults to <code>None</code> (no timeout, keeping existing behaviour).
+  Stored in <code>XMLRPCServerConfig.connection_timeout</code>.</li>
+<li><code>pytest&gt;=8.0</code> and <code>coverage[toml]&gt;=7.4</code> are now declared in the <code>tests</code> and <code>dev</code>
+  optional-dependency extras, so <code>pip install -e ".[dev]"</code> gives a full, reproducible
+  local test environment without extra manual steps.</li>
+</ul>
+<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Development status classifier bumped from <code>3 - Alpha</code> to <code>4 - Beta</code>.</li>
+</ul>
+<h2 id="010-2026-04-06"><a href="https://github.com/singh-sumit/xmlrpc_extended/releases/tag/v0.1.0">0.1.0</a> - 2026-04-06<a class="headerlink" href="#010-2026-04-06" title="Permanent link">&para;</a></h2>
+<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>XMLRPCASGIApp</code> — ASGI 3-compliant XML-RPC adapter (<code>src/xmlrpc_extended/asgi.py</code>):</li>
 <li>Inherits <code>SimpleXMLRPCDispatcher</code> for full <code>register_function</code> / <code>register_instance</code> / <code>register_introspection_functions</code> compatibility.</li>
@@ -1237,7 +1252,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>AAA (Arrange-Act-Assert) comment pattern applied to all test methods.</li>
 <li>MIT license, packaging metadata, and CI workflow.</li>
 </ul>
-<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<h3 id="changed_1">Changed<a class="headerlink" href="#changed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Overload semantics: capacity model table, policy behavior matrix, and recommended defaults documented in README.</li>
 </ul>
