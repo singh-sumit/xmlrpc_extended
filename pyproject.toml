@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xmlrpc_extended"
-version = "1.0.0rc1"
+version = "1.0.0"
 description = "Thread-pool powered extensions for Python XML-RPC servers."
 readme = "README.md"
 license = "MIT"
