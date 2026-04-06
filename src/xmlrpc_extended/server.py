@@ -5,12 +5,11 @@ from __future__ import annotations
 import socket
 import threading
 import xmlrpc.client
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
-
-from concurrent.futures import ThreadPoolExecutor
 
 
 class ServerOverloadPolicy(str, Enum):
@@ -41,7 +40,7 @@ class LimitedXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
 
     def log_error(self, format: str, *args: object) -> None:  # noqa: A002 - stdlib override
         """Only emit error log lines when the server has logging enabled."""
-        if self.server.logRequests:
+        if getattr(self.server, "logRequests", True):
             super().log_error(format, *args)
 
     def do_POST(self) -> None:  # noqa: N802 - stdlib override keeps original name
