@@ -1163,37 +1163,34 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>Configurable <code>max_workers</code>, <code>max_request_size</code>, <code>rpc_path</code>, <code>allow_none</code>, <code>encoding</code>, <code>use_builtin_types</code>.</li>
 <li>HTTP semantics: <code>404</code> for wrong path, <code>405</code> for non-POST, <code>413</code> for oversized body, <code>-32700</code> fault for malformed XML.</li>
 <li>Zero runtime dependencies — pure stdlib + asyncio.</li>
-<li><code>tests/test_asgi.py</code> — 45 tests following AAA pattern covering: smoke, call semantics, HTTP semantics, lifespan, dispatch edge-cases, introspection, error handling, and concurrency.</li>
-<li><code>benchmarks/benchmark_asgi.py</code> — in-process ASGI benchmark using <code>httpx.ASGITransport</code>.</li>
-<li><code>docs/user-guide/asgi.md</code> — full ASGI integration guide with deployment recipes, migration table, and testing patterns.</li>
-<li><code>docs/api-reference/asgi.md</code> — API reference for <code>XMLRPCASGIApp</code>.</li>
-<li><code>docs/architecture.md</code> — ASGI request lifecycle sequence diagram, handler dispatch flowchart, lifespan state diagram, and architecture comparison diagram.</li>
-<li><code>docs/benchmarks.md</code> — ASGI benchmark results section.</li>
-<li><code>[tool.coverage.*]</code> in <code>pyproject.toml</code> — branch coverage, fail-under=100, HTML report config.</li>
-<li><code>coverage</code>, <code>httpx</code>, <code>anyio</code> added to <code>[project.optional-dependencies.dev]</code>.</li>
-<li><code>CoverageGapTests</code> in <code>test_server.py</code> — 9 new tests closing all prior coverage gaps in <code>server.py</code>.</li>
-<li><code>test_extras.py</code> — 2 new tests closing coverage gaps in <code>multiprocess.py</code> and <code>client.py</code>.</li>
-<li>AAA (Arrange-Act-Assert) comment pattern applied to all test methods.</li>
-</ul>
-<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
-<ul>
-<li><code>ConstructorValidationTests</code>: 13 new tests covering invalid <code>max_workers</code>, <code>max_pending</code>, <code>request_queue_size</code>, <code>max_request_size</code>, custom fault code/string, <code>bind_and_activate=False</code>, <code>allow_none</code>, <code>use_builtin_types</code>, and policy string normalization.</li>
-<li><code>ExecutorShutdownTests</code>: tests for <code>shutdown_executor</code> idempotency and custom fault response.</li>
-<li>README: overload semantics section with capacity model table, policy behavior matrix, and recommended defaults.</li>
-</ul>
-<h2 id="010-2026-04-06">[0.1.0] - 2026-04-06<a class="headerlink" href="#010-2026-04-06" title="Permanent link">&para;</a></h2>
-<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
-<ul>
 <li><code>ThreadPoolXMLRPCServer</code> for drop-in <code>SimpleXMLRPCServer</code>-style usage with bounded thread-pool concurrency.</li>
-<li><code>ServerOverloadPolicy</code> enum with <code>BLOCK</code>, <code>CLOSE</code>, and <code>FAULT</code> modes.</li>
+<li><code>ServerOverloadPolicy</code> enum with <code>BLOCK</code>, <code>CLOSE</code>, <code>FAULT</code>, and <code>HTTP_503</code> modes.</li>
 <li><code>XMLRPCServerConfig</code> dataclass for server configuration.</li>
 <li><code>LimitedXMLRPCRequestHandler</code> with configurable <code>max_request_size</code> and strict <code>Content-Length</code> validation:</li>
 <li><code>411 Length Required</code> when <code>Content-Length</code> header is absent.</li>
 <li><code>400 Bad Request</code> for invalid or negative <code>Content-Length</code> values.</li>
 <li><code>413 Payload Too Large</code> when body exceeds <code>max_request_size</code>.</li>
 <li><code>501 Not Implemented</code> for <code>Transfer-Encoding: chunked</code> requests.</li>
+<li><code>XMLRPCClient</code> context manager with configurable timeout (<code>xmlrpc_extended.client</code>).</li>
+<li><code>SO_REUSEPORT</code> multi-process scale-out helpers for Linux (<code>xmlrpc_extended.multiprocess</code>).</li>
 <li><code>logRequests=False</code> suppresses both request and error-path log output.</li>
+<li><code>tests/test_asgi.py</code> — 45 tests following AAA pattern covering: smoke, call semantics, HTTP semantics, lifespan, dispatch edge-cases, introspection, error handling, and concurrency.</li>
+<li><code>tests/test_server.py</code> — <code>CoverageGapTests</code> class with 9 new tests closing all coverage gaps in <code>server.py</code>; full <code>ConstructorValidationTests</code> and <code>ExecutorShutdownTests</code>.</li>
+<li><code>tests/test_extras.py</code> — tests for <code>client.py</code> and <code>multiprocess.py</code> covering all branches.</li>
+<li><code>benchmarks/benchmark_all.py</code> — unified benchmark comparing all four implementations (Simple, Threaded, ThreadPool, ASGI) side by side.</li>
+<li><code>benchmarks/benchmark_asgi.py</code> — in-process ASGI benchmark using <code>httpx.ASGITransport</code>.</li>
+<li><code>benchmarks/benchmark_server.py</code> — <code>SimpleXMLRPCServer</code> vs <code>ThreadPoolXMLRPCServer</code> benchmark.</li>
+<li><code>docs/user-guide/asgi.md</code> — full ASGI integration guide with deployment recipes, migration table, and testing patterns.</li>
+<li><code>docs/api-reference/asgi.md</code> — API reference for <code>XMLRPCASGIApp</code>.</li>
+<li><code>docs/architecture.md</code> — ASGI request lifecycle sequence diagram, handler dispatch flowchart, lifespan state diagram, and architecture comparison diagram.</li>
+<li><code>docs/benchmarks.md</code> — unified four-implementation benchmark results.</li>
+<li><code>[tool.coverage.*]</code> in <code>pyproject.toml</code> — branch coverage, fail-under=100, HTML report config.</li>
+<li>AAA (Arrange-Act-Assert) comment pattern applied to all test methods.</li>
 <li>MIT license, packaging metadata, and CI workflow.</li>
+</ul>
+<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Overload semantics: capacity model table, policy behavior matrix, and recommended defaults documented in README.</li>
 </ul>
 
 
