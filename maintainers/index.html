@@ -12,13 +12,11 @@
         <meta name="author" content="singh-sumit">
       
       
-        <link rel="canonical" href="https://singh-sumit.github.io/xmlrpc_extended/changelog/">
+        <link rel="canonical" href="https://singh-sumit.github.io/xmlrpc_extended/maintainers/">
       
       
-        <link rel="prev" href="../code-of-conduct/">
+        <link rel="prev" href="../changelog/">
       
-      
-        <link rel="next" href="../maintainers/">
       
       
         
@@ -29,7 +27,7 @@
     
     
       
-        <title>Changelog - xmlrpc_extended</title>
+        <title>Maintainers Guide - xmlrpc_extended</title>
       
     
     
@@ -86,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#changelog" class="md-skip">
+        <a href="#maintainers-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -122,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Changelog
+              Maintainers Guide
             
           </span>
         </div>
@@ -405,11 +403,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="./" class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../changelog/" class="md-tabs__link">
         
   
   
@@ -426,9 +422,11 @@
   
   
   
+    
   
-    <li class="md-tabs__item">
-      <a href="../maintainers/" class="md-tabs__link">
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
         
   
   
@@ -1087,19 +1085,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
         
   
   
@@ -1115,7 +1104,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -1124,10 +1112,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../maintainers/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintainers Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1143,6 +1158,233 @@
   
 
       </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#release-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release checklist
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Release checklist">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-decide-the-version-number" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Decide the version number
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-bump-the-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Bump the version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-update-changelogmd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Update CHANGELOG.md
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-pass-all-quality-gates-locally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Pass all quality gates locally
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-commit-and-push" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Commit and push
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-tag-and-publish" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Tag and publish
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automated-cicd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automated CI/CD
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Automated CI/CD">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ci-workflow-ciyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CI workflow (ci.yml)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docs-workflow-docsyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docs workflow (docs.yml)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publish-workflow-publishyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publish workflow (publish.yml)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-and-previewing-docs-locally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building and previewing docs locally
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Building and previewing docs locally">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#preview-with-live-reload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preview with live reload
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strict-build-same-as-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strict build (same as CI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#force-deploy-manually" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Force-deploy manually
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-a-github-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a GitHub Release
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Post-release
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1168,6 +1410,219 @@
   
     
   
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#release-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release checklist
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Release checklist">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-decide-the-version-number" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Decide the version number
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-bump-the-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Bump the version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-update-changelogmd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Update CHANGELOG.md
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-pass-all-quality-gates-locally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Pass all quality gates locally
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-commit-and-push" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Commit and push
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-tag-and-publish" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Tag and publish
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automated-cicd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automated CI/CD
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Automated CI/CD">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ci-workflow-ciyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CI workflow (ci.yml)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docs-workflow-docsyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docs workflow (docs.yml)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publish-workflow-publishyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publish workflow (publish.yml)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-and-previewing-docs-locally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building and previewing docs locally
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Building and previewing docs locally">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#preview-with-live-reload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preview with live reload
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strict-build-same-as-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strict build (same as CI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#force-deploy-manually" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Force-deploy manually
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-a-github-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a GitHub Release
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Post-release
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1195,51 +1650,214 @@
   
 
 
-<h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
-<h1 id="changelog_1">Changelog<a class="headerlink" href="#changelog_1" title="Permanent link">&para;</a></h1>
-<p>All notable changes to this project will be documented in this file.</p>
-<p>The format is based on <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>,
-and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
-<h2 id="unreleased"><a href="https://github.com/singh-sumit/xmlrpc_extended/compare/v0.1.0...HEAD">Unreleased</a><a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
-<h2 id="010-2026-04-06"><a href="https://github.com/singh-sumit/xmlrpc_extended/releases/tag/v0.1.0">0.1.0</a> - 2026-04-06<a class="headerlink" href="#010-2026-04-06" title="Permanent link">&para;</a></h2>
-<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<h1 id="maintainers-guide">Maintainers Guide<a class="headerlink" href="#maintainers-guide" title="Permanent link">&para;</a></h1>
+<p>Internal reference for project maintainers — release preparation, docs deployment, CI, and post-release tasks.</p>
+<hr />
+<h2 id="release-checklist">Release checklist<a class="headerlink" href="#release-checklist" title="Permanent link">&para;</a></h2>
+<h3 id="1-decide-the-version-number">1. Decide the version number<a class="headerlink" href="#1-decide-the-version-number" title="Permanent link">&para;</a></h3>
+<p>Follow <a href="https://semver.org/">Semantic Versioning</a>:</p>
+<table>
+<thead>
+<tr>
+<th>Change type</th>
+<th>Version part to bump</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Backwards-incompatible API change</td>
+<td><code>MAJOR</code> (x.0.0)</td>
+</tr>
+<tr>
+<td>New backwards-compatible feature</td>
+<td><code>MINOR</code> (0.x.0)</td>
+</tr>
+<tr>
+<td>Bug fix, docs, or internal change</td>
+<td><code>PATCH</code> (0.0.x)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-bump-the-version">2. Bump the version<a class="headerlink" href="#2-bump-the-version" title="Permanent link">&para;</a></h3>
+<p>The version lives in exactly one place:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># pyproject.toml</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">[project]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.2.0&quot;</span><span class="w">   </span><span class="c1"># ← edit this</span>
+</span></code></pre></div>
+<h3 id="3-update-changelogmd">3. Update <code>CHANGELOG.md</code><a class="headerlink" href="#3-update-changelogmd" title="Permanent link">&para;</a></h3>
+<p>Rename the <code>[Unreleased]</code> heading to the concrete version and date and add a
+fresh empty <code>[Unreleased]</code> block above it:</p>
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="gu">## [Unreleased]</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="gu">## [0.2.0] - YYYY-MM-DD</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="gu">### Added</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="k">-</span><span class="w"> </span>…
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="gu">### Fixed</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="k">-</span><span class="w"> </span>…
+</span></code></pre></div>
+<p>Update the comparison links at the bottom of the file:</p>
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>[<span class="nl">Unreleased</span>]: <span class="na">https://github.com/singh-sumit/xmlrpc_extended/compare/v0.2.0...HEAD</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>[<span class="nl">0.2.0</span>]: <span class="na">https://github.com/singh-sumit/xmlrpc_extended/compare/v0.1.0...v0.2.0</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>[<span class="nl">0.1.0</span>]: <span class="na">https://github.com/singh-sumit/xmlrpc_extended/releases/tag/v0.1.0</span>
+</span></code></pre></div>
+<h3 id="4-pass-all-quality-gates-locally">4. Pass all quality gates locally<a class="headerlink" href="#4-pass-all-quality-gates-locally" title="Permanent link">&para;</a></h3>
+<p>Run every check before pushing:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Lint</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>ruff<span class="w"> </span>check<span class="w"> </span>src<span class="w"> </span>tests
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Type check</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>mypy<span class="w"> </span>src
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Full test suite — 100% coverage required</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>python<span class="w"> </span>-m<span class="w"> </span>coverage<span class="w"> </span>run<span class="w"> </span>--source<span class="o">=</span>src<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>python<span class="w"> </span>-m<span class="w"> </span>coverage<span class="w"> </span>report
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="c1"># Docs build (strict mode catches broken links and missing nav entries)</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
+</span></code></pre></div>
+<p>All commands must exit with code 0.</p>
+<h3 id="5-commit-and-push">5. Commit and push<a class="headerlink" href="#5-commit-and-push" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>git<span class="w"> </span>add<span class="w"> </span>pyproject.toml<span class="w"> </span>CHANGELOG.md
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;chore: prepare v0.2.0 release&quot;</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>main
+</span></code></pre></div>
+<p>Wait for the <a href="https://github.com/singh-sumit/xmlrpc_extended/actions/workflows/ci.yml">CI workflow</a>
+to go green before tagging.</p>
+<h3 id="6-tag-and-publish">6. Tag and publish<a class="headerlink" href="#6-tag-and-publish" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>git<span class="w"> </span>tag<span class="w"> </span>-a<span class="w"> </span>v0.2.0<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Release v0.2.0&quot;</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>v0.2.0
+</span></code></pre></div>
+<p>Pushing the tag triggers the <a href="#publish-workflow-publishyml">Publish workflow</a> automatically.</p>
+<hr />
+<h2 id="automated-cicd">Automated CI/CD<a class="headerlink" href="#automated-cicd" title="Permanent link">&para;</a></h2>
+<p>There are three GitHub Actions workflows:</p>
+<table>
+<thead>
+<tr>
+<th>Workflow file</th>
+<th>Trigger</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ci.yml</code></td>
+<td>Push / PR to <code>main</code></td>
+<td>Ruff lint → mypy → tests on Python 3.10–3.13, build wheel &amp; sdist, install and re-test</td>
+</tr>
+<tr>
+<td><code>docs.yml</code></td>
+<td>Push to <code>main</code></td>
+<td><code>mkdocs gh-deploy --force</code> → pushes built site to <code>gh-pages</code> branch</td>
+</tr>
+<tr>
+<td><code>publish.yml</code></td>
+<td>Push a <code>v*.*.*</code> tag, or <code>workflow_dispatch</code></td>
+<td>Build → publish to TestPyPI → verify install → publish to PyPI</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ci-workflow-ciyml">CI workflow (<code>ci.yml</code>)<a class="headerlink" href="#ci-workflow-ciyml" title="Permanent link">&para;</a></h3>
+<p>Three parallel jobs:</p>
 <ul>
-<li><code>XMLRPCASGIApp</code> — ASGI 3-compliant XML-RPC adapter (<code>src/xmlrpc_extended/asgi.py</code>):</li>
-<li>Inherits <code>SimpleXMLRPCDispatcher</code> for full <code>register_function</code> / <code>register_instance</code> / <code>register_introspection_functions</code> compatibility.</li>
-<li><code>async def</code> handlers are awaited directly in the event loop (no thread overhead).</li>
-<li>Synchronous handlers run in a <code>ThreadPoolExecutor</code> via <code>asyncio.to_thread</code>.</li>
-<li>ASGI lifespan protocol: startup creates the thread pool, shutdown drains it gracefully.</li>
-<li>Configurable <code>max_workers</code>, <code>max_request_size</code>, <code>rpc_path</code>, <code>allow_none</code>, <code>encoding</code>, <code>use_builtin_types</code>.</li>
-<li>HTTP semantics: <code>404</code> for wrong path, <code>405</code> for non-POST, <code>413</code> for oversized body, <code>-32700</code> fault for malformed XML.</li>
-<li>Zero runtime dependencies — pure stdlib + asyncio.</li>
-<li><code>ThreadPoolXMLRPCServer</code> for drop-in <code>SimpleXMLRPCServer</code>-style usage with bounded thread-pool concurrency.</li>
-<li><code>ServerOverloadPolicy</code> enum with <code>BLOCK</code>, <code>CLOSE</code>, <code>FAULT</code>, and <code>HTTP_503</code> modes.</li>
-<li><code>XMLRPCServerConfig</code> dataclass for server configuration.</li>
-<li><code>LimitedXMLRPCRequestHandler</code> with configurable <code>max_request_size</code> and strict <code>Content-Length</code> validation:</li>
-<li><code>411 Length Required</code> when <code>Content-Length</code> header is absent.</li>
-<li><code>400 Bad Request</code> for invalid or negative <code>Content-Length</code> values.</li>
-<li><code>413 Payload Too Large</code> when body exceeds <code>max_request_size</code>.</li>
-<li><code>501 Not Implemented</code> for <code>Transfer-Encoding: chunked</code> requests.</li>
-<li><code>XMLRPCClient</code> context manager with configurable timeout (<code>xmlrpc_extended.client</code>).</li>
-<li><code>SO_REUSEPORT</code> multi-process scale-out helpers for Linux (<code>xmlrpc_extended.multiprocess</code>).</li>
-<li><code>logRequests=False</code> suppresses both request and error-path log output.</li>
-<li><code>tests/test_asgi.py</code> — 45 tests following AAA pattern covering: smoke, call semantics, HTTP semantics, lifespan, dispatch edge-cases, introspection, error handling, and concurrency.</li>
-<li><code>tests/test_server.py</code> — <code>CoverageGapTests</code> class with 9 new tests closing all coverage gaps in <code>server.py</code>; full <code>ConstructorValidationTests</code> and <code>ExecutorShutdownTests</code>.</li>
-<li><code>tests/test_extras.py</code> — tests for <code>client.py</code> and <code>multiprocess.py</code> covering all branches.</li>
-<li><code>benchmarks/benchmark_all.py</code> — unified benchmark comparing all four implementations (Simple, Threaded, ThreadPool, ASGI) side by side.</li>
-<li><code>benchmarks/benchmark_asgi.py</code> — in-process ASGI benchmark using <code>httpx.ASGITransport</code>.</li>
-<li><code>benchmarks/benchmark_server.py</code> — <code>SimpleXMLRPCServer</code> vs <code>ThreadPoolXMLRPCServer</code> benchmark.</li>
-<li><code>docs/user-guide/asgi.md</code> — full ASGI integration guide with deployment recipes, migration table, and testing patterns.</li>
-<li><code>docs/api-reference/asgi.md</code> — API reference for <code>XMLRPCASGIApp</code>.</li>
-<li><code>docs/architecture.md</code> — ASGI request lifecycle sequence diagram, handler dispatch flowchart, lifespan state diagram, and architecture comparison diagram.</li>
-<li><code>docs/benchmarks.md</code> — unified four-implementation benchmark results.</li>
-<li><code>[tool.coverage.*]</code> in <code>pyproject.toml</code> — branch coverage, fail-under=100, HTML report config.</li>
-<li>AAA (Arrange-Act-Assert) comment pattern applied to all test methods.</li>
-<li>MIT license, packaging metadata, and CI workflow.</li>
+<li><strong>lint</strong> — <code>ruff check src tests</code></li>
+<li><strong>typecheck</strong> — <code>mypy src</code></li>
+<li><strong>test</strong> — matrix over Python 3.10, 3.11, 3.12, 3.13:<ol>
+<li>Build wheel + sdist with <code>python -m build</code></li>
+<li>Install wheel <code>--no-deps</code> then install <code>httpx anyio</code></li>
+<li>Run <code>pytest tests/</code> (must pass with 0 failures)</li>
+<li>Install from sdist and re-run tests</li>
+</ol>
+</li>
 </ul>
-<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<h3 id="docs-workflow-docsyml">Docs workflow (<code>docs.yml</code>)<a class="headerlink" href="#docs-workflow-docsyml" title="Permanent link">&para;</a></h3>
+<p>Runs on every push to <code>main</code>. Uses <code>mkdocs gh-deploy --force</code> which:</p>
+<ol>
+<li>Builds the static site into a temporary directory</li>
+<li>Force-pushes it to the <code>gh-pages</code> branch</li>
+<li>GitHub Pages serves it at <a href="https://singh-sumit.github.io/xmlrpc_extended/">https://singh-sumit.github.io/xmlrpc_extended/</a></li>
+</ol>
+<p>The site is <strong>not</strong> rebuilt on tag pushes — only on <code>main</code> commits. If you want
+to preview a doc change before merging, use <code>mkdocs serve</code> locally (see below).</p>
+<h3 id="publish-workflow-publishyml">Publish workflow (<code>publish.yml</code>)<a class="headerlink" href="#publish-workflow-publishyml" title="Permanent link">&para;</a></h3>
+<p>Four jobs executed in this order:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>build  ──►  publish-testpypi  ──►  verify-testpypi
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  │
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  └─────►  publish-pypi  (tag pushes only)
+</span></code></pre></div>
+<p><code>publish-pypi</code> depends on <code>build</code> only — not on <code>verify-testpypi</code>. This means a
+TestPyPI failure (such as the <a href="https://test.pypi.org/help/#file-name-reuse">filename-reuse rule</a>
+that applies when a same-version file was previously uploaded and deleted) does
+<strong>not</strong> block the real PyPI release.</p>
+<p>Required repository secrets (Settings → Secrets and variables → Actions):</p>
+<table>
+<thead>
+<tr>
+<th>Secret name</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TESTPYPI_API_TOKEN</code></td>
+<td>API token from <a href="https://test.pypi.org">https://test.pypi.org</a> (<code>pypi-…</code>)</td>
+</tr>
+<tr>
+<td><code>PYPI_API_TOKEN</code></td>
+<td>API token from <a href="https://pypi.org">https://pypi.org</a> (<code>pypi-…</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>To trigger a publish run without creating a tag (dry-run — TestPyPI only,
+PyPI step is skipped):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>gh<span class="w"> </span>workflow<span class="w"> </span>run<span class="w"> </span>publish.yml<span class="w"> </span>--ref<span class="w"> </span>main
+</span></code></pre></div>
+<hr />
+<h2 id="building-and-previewing-docs-locally">Building and previewing docs locally<a class="headerlink" href="#building-and-previewing-docs-locally" title="Permanent link">&para;</a></h2>
+<h3 id="preview-with-live-reload">Preview with live reload<a class="headerlink" href="#preview-with-live-reload" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Install doc dependencies (once)</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Start the dev server</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>mkdocs<span class="w"> </span>serve
+</span></code></pre></div>
+<p>Open <a href="http://127.0.0.1:8000">http://127.0.0.1:8000</a>. The page auto-reloads on every file save.</p>
+<h3 id="strict-build-same-as-ci">Strict build (same as CI)<a class="headerlink" href="#strict-build-same-as-ci" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
+</span></code></pre></div>
+<p><code>--strict</code> turns warnings into errors. Use this before pushing doc changes to
+catch broken links, missing <code>nav</code> entries, and invalid <code>mkdocstrings</code> references.
+The built site lands in <code>site/</code> (<code>.gitignore</code>d).</p>
+<h3 id="force-deploy-manually">Force-deploy manually<a class="headerlink" href="#force-deploy-manually" title="Permanent link">&para;</a></h3>
+<p>If the <code>docs.yml</code> GitHub Actions run failed or you need to push docs
+independently of a code commit:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>mkdocs<span class="w"> </span>gh-deploy<span class="w"> </span>--force
+</span></code></pre></div>
+<p>This requires <code>contents: write</code> permission on the repository (already granted
+in <code>docs.yml</code>). Running it locally needs a <code>git push</code> credential with write access
+to the repo.</p>
+<hr />
+<h2 id="creating-a-github-release">Creating a GitHub Release<a class="headerlink" href="#creating-a-github-release" title="Permanent link">&para;</a></h2>
+<p>After the tag is pushed and the Publish workflow is green:</p>
+<ol>
+<li>Go to <a href="https://github.com/singh-sumit/xmlrpc_extended/releases/new">https://github.com/singh-sumit/xmlrpc_extended/releases/new</a></li>
+<li>Select the tag (e.g. <code>v0.2.0</code>)</li>
+<li>Title: <code>v0.2.0</code></li>
+<li>Body: paste the CHANGELOG section for this version</li>
+<li>Click <strong>Publish release</strong></li>
+</ol>
+<p>The release page links to the source tarball and the commit, and appears in the
+GitHub feed for watchers.</p>
+<hr />
+<h2 id="post-release">Post-release<a class="headerlink" href="#post-release" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Overload semantics: capacity model table, policy behavior matrix, and recommended defaults documented in README.</li>
+<li>[ ] Confirm the package is live: <code>pip index versions xmlrpc-extended</code></li>
+<li>[ ] Confirm the docs site updated: <a href="https://singh-sumit.github.io/xmlrpc_extended/">https://singh-sumit.github.io/xmlrpc_extended/</a></li>
+<li>[ ] Create the GitHub Release (see above)</li>
+<li>[ ] Open a new issue or milestone for the next version if there is work queued</li>
+<li>[ ] Update <code>pyproject.toml</code> version to the next development version (optional — only if you follow <code>-dev</code> suffixes)</li>
 </ul>
 
 
@@ -1330,7 +1948,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../code-of-conduct/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Code of Conduct">
+          <a href="../changelog/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Changelog">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1340,27 +1958,11 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
                 Previous
               </span>
               <div class="md-ellipsis">
-                Code of Conduct
+                Changelog
               </div>
             </div>
           </a>
         
-        
-          
-          <a href="../maintainers/" class="md-footer__link md-footer__link--next" aria-label="Next: Maintainers Guide">
-            <div class="md-footer__title">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              <div class="md-ellipsis">
-                Maintainers Guide
-              </div>
-            </div>
-            <div class="md-footer__button md-icon">
-              
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
-            </div>
-          </a>
         
       </nav>
     
