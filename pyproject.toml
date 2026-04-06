@@ -25,6 +25,11 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
+# Test runner dependencies (httpx + anyio for ASGI tests)
+tests = [
+    "httpx>=0.27",
+    "anyio>=4.4",
+]
 # Local development: pre-commit install && pip install -e ".[dev]"
 dev = [
     "pre-commit>=3.7",

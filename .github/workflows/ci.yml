@@ -62,6 +62,9 @@ jobs:
       - name: Install from wheel
         run: python -m pip install dist/*.whl --no-deps
 
+      - name: Install test dependencies
+        run: python -m pip install httpx anyio
+
       - name: Run tests (wheel)
         run: python -m unittest discover -s tests -v
 
