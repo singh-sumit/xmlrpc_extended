@@ -11,7 +11,7 @@ license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
 authors = [
-  { name = "Elsight" },
+  { name = "singh-sumit", email = "singhsumit9824@gmail.com" },
 ]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -20,14 +20,32 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
 ]
 
 [project.urls]
-Homepage = "https://github.com/sumit-elsight/xmlrpc_extended"
+Homepage = "https://github.com/singh-sumit/xmlrpc_extended"
+Repository = "https://github.com/singh-sumit/xmlrpc_extended"
+Issues = "https://github.com/singh-sumit/xmlrpc_extended/issues"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+xmlrpc_extended = ["py.typed"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["src"]
