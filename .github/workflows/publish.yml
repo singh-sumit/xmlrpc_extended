@@ -83,7 +83,7 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TESTPYPI_API_TOKEN }}
-        run: twine upload --repository-url https://upload.test.pypi.org/legacy/ dist/*
+        run: twine upload --repository-url https://upload.test.pypi.org/legacy/ --skip-existing dist/*
 
   # ── 3. Verify install from TestPyPI ──────────────────────────────────────
   verify-testpypi:
