@@ -146,6 +146,7 @@ class XMLRPCServerConfig:
     max_request_size: int = 1_048_576
     overload_fault_code: int = -32500
     overload_fault_string: str = "Server overloaded"
+    connection_timeout: float | None = None
 
 
 class LimitedXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
@@ -231,6 +232,7 @@ class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
         overload_fault_code: int = XMLRPCServerConfig.overload_fault_code,
         overload_fault_string: str = XMLRPCServerConfig.overload_fault_string,
         rpc_paths: tuple[str, ...] | None = None,
+        connection_timeout: float | None = None,
     ) -> None:
         """Initialise the server.
 
@@ -265,10 +267,16 @@ class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
                 ``overload_policy=FAULT``.
             rpc_paths: Accepted URL paths.  ``None`` uses the stdlib defaults
                 (``"/"`` and ``"/RPC2"``).  All other paths return ``404``.
+            connection_timeout: Per-connection socket read timeout in seconds.
+                After a client socket is accepted, this timeout is applied so
+                that a slow or stalled sender cannot hold a worker thread
+                indefinitely.  ``None`` (default) means no timeout (blocking
+                I/O, matching the stdlib default).
 
         Raises:
             ValueError: If ``max_workers < 1``, ``max_pending < 0``,
-                ``request_queue_size < 1``, or ``max_request_size < 1``.
+                ``request_queue_size < 1``, ``max_request_size < 1``,
+                or ``connection_timeout`` is not ``None`` and is ≤ 0.
         """
         normalized_policy = ServerOverloadPolicy(overload_policy)
         effective_pending = max_workers if max_pending is None else max_pending
@@ -281,6 +289,8 @@ class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
             raise ValueError("request_queue_size must be at least 1")
         if max_request_size < 1:
             raise ValueError("max_request_size must be at least 1")
+        if connection_timeout is not None and connection_timeout <= 0:
+            raise ValueError("connection_timeout must be a positive number")
 
         self.request_queue_size = request_queue_size
         self._config = XMLRPCServerConfig(
@@ -291,6 +301,7 @@ class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
             max_request_size=max_request_size,
             overload_fault_code=overload_fault_code,
             overload_fault_string=overload_fault_string,
+            connection_timeout=connection_timeout,
         )
         self._capacity = threading.Semaphore(total_capacity)
         self._executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="xmlrpc")
@@ -337,6 +348,8 @@ class ThreadPoolXMLRPCServer(SimpleXMLRPCServer):
         return self._stats.snapshot()
 
     def process_request(self, request: Any, client_address: tuple[str, int]) -> None:
+        if self.config.connection_timeout is not None:
+            request.settimeout(self.config.connection_timeout)
         if not self._acquire_capacity():
             self._reject_request(request)
             return

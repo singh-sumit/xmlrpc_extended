@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0rc1] - 2026-04-06
+
+### Added
+- `connection_timeout` constructor parameter on `ThreadPoolXMLRPCServer` — sets a
+  per-connection socket read timeout so stalled or slow clients cannot hold a worker
+  thread indefinitely.  Defaults to `None` (no timeout, keeping existing behaviour).
+  Stored in `XMLRPCServerConfig.connection_timeout`.
+- `pytest>=8.0` and `coverage[toml]>=7.4` are now declared in the `tests` and `dev`
+  optional-dependency extras, so `pip install -e ".[dev]"` gives a full, reproducible
+  local test environment without extra manual steps.
+
+### Changed
+- Development status classifier bumped from `3 - Alpha` to `4 - Beta`.
+
 ## [0.1.0] - 2026-04-06
 
 ### Added
@@ -46,5 +60,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Overload semantics: capacity model table, policy behavior matrix, and recommended defaults documented in README.
 
-[Unreleased]: https://github.com/singh-sumit/xmlrpc_extended/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/singh-sumit/xmlrpc_extended/compare/v1.0.0rc1...HEAD
+[1.0.0rc1]: https://github.com/singh-sumit/xmlrpc_extended/compare/v0.1.0...v1.0.0rc1
 [0.1.0]: https://github.com/singh-sumit/xmlrpc_extended/releases/tag/v0.1.0

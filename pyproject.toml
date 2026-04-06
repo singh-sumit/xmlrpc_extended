@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xmlrpc_extended"
-version = "0.1.0"
+version = "1.0.0rc1"
 description = "Thread-pool powered extensions for Python XML-RPC servers."
 readme = "README.md"
 license = "MIT"
@@ -14,7 +14,7 @@ authors = [
   { name = "singh-sumit", email = "singhsumit9824@gmail.com" },
 ]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
@@ -27,6 +27,8 @@ classifiers = [
 [project.optional-dependencies]
 # Test runner dependencies (httpx + anyio for ASGI tests)
 tests = [
+    "pytest>=8.0",
+    "coverage[toml]>=7.4",
     "httpx>=0.27",
     "anyio>=4.4",
 ]
@@ -36,7 +38,8 @@ dev = [
     "ruff>=0.15",
     "mypy>=1.10",
     "build>=1.2",
-    "coverage>=7.4",
+    "pytest>=8.0",
+    "coverage[toml]>=7.4",
     "httpx>=0.27",
     "anyio>=4.4",
 ]

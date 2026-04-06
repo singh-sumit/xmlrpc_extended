@@ -1018,5 +1018,98 @@ class CoverageGapTests(unittest.TestCase):
         self.assertEqual(65536, result.max_request_size)
 
 
+class ConnectionTimeoutTests(unittest.TestCase):
+    """Tests for the connection_timeout constructor parameter."""
+
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
+
+    def test_rejects_zero_connection_timeout(self):
+        # Arrange / Act / Assert
+        with self.assertRaises(ValueError):
+            ThreadPoolXMLRPCServer(("127.0.0.1", 0), bind_and_activate=False, connection_timeout=0)
+
+    def test_rejects_negative_connection_timeout(self):
+        # Arrange / Act / Assert
+        with self.assertRaises(ValueError):
+            ThreadPoolXMLRPCServer(("127.0.0.1", 0), bind_and_activate=False, connection_timeout=-1.0)
+
+    def test_none_connection_timeout_is_valid(self):
+        # Arrange / Act
+        server = ThreadPoolXMLRPCServer(("127.0.0.1", 0), bind_and_activate=False, connection_timeout=None)
+        # Assert
+        self.assertIsNone(server.config.connection_timeout)
+        server.shutdown_executor(wait=False)
+
+    def test_positive_connection_timeout_stored_in_config(self):
+        # Arrange / Act
+        server = ThreadPoolXMLRPCServer(("127.0.0.1", 0), bind_and_activate=False, connection_timeout=5.0)
+        # Assert
+        self.assertEqual(5.0, server.config.connection_timeout)
+        server.shutdown_executor(wait=False)
+
+    # ------------------------------------------------------------------
+    # Behaviour — normal RPC still works when timeout is configured
+    # ------------------------------------------------------------------
+
+    def setUp(self):
+        self.server = ThreadPoolXMLRPCServer(
+            ("127.0.0.1", 0),
+            max_workers=2,
+            logRequests=False,
+            connection_timeout=2.0,  # generous — won't fire during a normal call
+        )
+        self.server.register_function(lambda a, b: a + b, "add")
+        self.port = self.server.server_address[1]
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+
+    def tearDown(self):
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(timeout=5)
+
+    def test_normal_rpc_call_succeeds_within_timeout(self):
+        # Arrange
+        proxy = xmlrpc.client.ServerProxy(f"http://127.0.0.1:{self.port}/")
+        # Act
+        result = proxy.add(3, 4)
+        # Assert
+        self.assertEqual(7, result)
+
+    def test_slow_client_connection_is_timed_out(self):
+        # Arrange: server with a very short timeout
+        import socket as _socket
+
+        fast_server = ThreadPoolXMLRPCServer(
+            ("127.0.0.1", 0),
+            max_workers=2,
+            logRequests=False,
+            connection_timeout=0.1,  # 100 ms
+        )
+        fast_port = fast_server.server_address[1]
+        t = threading.Thread(target=fast_server.serve_forever, daemon=True)
+        t.start()
+
+        try:
+            # Act: connect but do not send any HTTP data
+            sock = _socket.create_connection(("127.0.0.1", fast_port))
+            sock.settimeout(2.0)
+            time.sleep(0.35)  # wait > 3× the server connection_timeout
+            # Assert: server has closed the connection — recv returns b'' or raises
+            try:
+                data = sock.recv(1024)
+                self.assertEqual(b"", data)
+            except OSError:
+                pass  # connection reset is also acceptable
+            finally:
+                sock.close()
+        finally:
+            fast_server.shutdown()
+            fast_server.server_close()
+            t.join(timeout=5)
+
+
 if __name__ == "__main__":
     unittest.main()
