@@ -270,3 +270,102 @@ predictable memory footprint under load.
 Constructor-level compatibility with `SimpleXMLRPCServer` means drop-in
 replacement: existing code that passes `logRequests`, `allow_none`, etc. works
 unchanged. The handler chain and method dispatch are unchanged from the stdlib.
+
+---
+
+## ASGI adapter architecture
+
+`XMLRPCASGIApp` exposes the same XML-RPC method registry via an ASGI 3
+interface.  The key difference from `ThreadPoolXMLRPCServer` is that the
+**event loop multiplexes connections** instead of OS threads.
+
+### ASGI request lifecycle
+
+```mermaid
+sequenceDiagram
+    participant C   as Client
+    participant AS  as ASGI Server<br/>(uvicorn / hypercorn)
+    participant APP as XMLRPCASGIApp<br/>(__call__)
+    participant EL  as asyncio event loop
+    participant TP  as ThreadPoolExecutor<br/>(sync handlers only)
+    participant H   as Handler function
+
+    C  ->> AS  : HTTP POST /rpc (XML-RPC body)
+    AS ->> APP : scope, receive, send
+    APP ->> APP : check path & method
+    APP ->> APP : read body (receive events)
+    APP ->> APP : parse XML-RPC (xmlrpc.client.loads)
+    alt async def handler
+        APP ->> EL : await handler(*params)
+        EL -->> APP : result
+    else sync handler
+        APP ->> TP : loop.run_in_executor(handler, *params)
+        TP -->> APP : result
+    end
+    APP ->> APP : marshal response (xmlrpc.client.dumps)
+    APP ->> AS  : send HTTP 200 + XML body
+    AS  ->> C   : HTTP response
+```
+
+### Handler dispatch flowchart
+
+```mermaid
+flowchart TD
+    A[method name from request] --> B{in self.funcs?}
+    B -- yes --> F[found function]
+    B -- no  --> C{instance registered?}
+    C -- no  --> FAULT[Fault -32601: not supported]
+    C -- yes --> D{has _dispatch method?}
+    D -- yes --> E[call instance._dispatch]
+    E --> F
+    D -- no  --> G[resolve_dotted_attribute]
+    G -- found --> F
+    G -- AttributeError --> FAULT
+    F --> H{async def?}
+    H -- yes --> I[await directly in event loop]
+    H -- no  --> J[asyncio.to_thread → ThreadPoolExecutor]
+    I --> K[marshal & return]
+    J --> K
+```
+
+### ASGI lifespan
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle : XMLRPCASGIApp()
+    Idle --> Running : lifespan.startup\n(creates ThreadPoolExecutor)
+    Running --> Idle : lifespan.shutdown\n(drains & closes executor)
+    Idle --> Running : lazy — first request\n(no lifespan server)
+    Running --> Closed : app.close()
+    Idle --> Closed : app.close() — no-op
+    Closed --> [*]
+```
+
+### ASGI vs thread-pool comparison
+
+```mermaid
+graph LR
+    subgraph ThreadPoolXMLRPCServer
+        direction TB
+        TCP[OS TCP socket] --> Accept[Accept thread]
+        Accept --> TP1[ThreadPoolExecutor]
+        TP1 --> W1[Worker 1]
+        TP1 --> W2[Worker 2]
+        TP1 --> WN[Worker N]
+    end
+
+    subgraph XMLRPCASGIApp
+        direction TB
+        ASGI[ASGI server\nuvicorn / hypercorn] --> EL[asyncio event loop]
+        EL --> AH[async handler\n→ awaited directly]
+        EL --> TP2[ThreadPoolExecutor]
+        TP2 --> SW1[sync handler 1]
+        TP2 --> SW2[sync handler 2]
+    end
+```
+
+!!! tip "When to choose ASGI"
+    If your handlers are `async def` and do async I/O, `XMLRPCASGIApp` avoids
+    thread-pool overhead entirely — all concurrency happens in one event loop.
+    For mixed workloads (some sync legacy code, some new async code) both can
+    coexist in the same `XMLRPCASGIApp` instance.

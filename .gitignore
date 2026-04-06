@@ -9,3 +9,10 @@ src/*.egg-info/
 site/
 # pre-commit cache
 .pre-commit-cache/
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+# Local planning docs (not for repo)
+xmlrpc_extended_issues_and_milestones.md

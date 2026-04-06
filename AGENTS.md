@@ -17,6 +17,7 @@ that extends `SimpleXMLRPCServer` with:
 - Configurable URL path restriction via `rpc_paths`
 - Optional client helper: `XMLRPCClient` context manager with timeout
 - Linux-only scale-out via `SO_REUSEPORT` (`xmlrpc_extended.multiprocess`)
+- **ASGI adapter**: `XMLRPCASGIApp` — deploy on any ASGI server (uvicorn, hypercorn, granian)
 
 **Minimum Python version:** 3.10  
 **Target audience:** Python developers running internal RPC services or
@@ -33,18 +34,21 @@ src/xmlrpc_extended/
                          #       ServerStats, LimitedXMLRPCRequestHandler
     client.py            # Optional: XMLRPCClient context manager
     multiprocess.py      # Optional: SO_REUSEPORT helpers (Linux only)
+    asgi.py              # Optional: XMLRPCASGIApp — ASGI 3 adapter
 
 tests/
-    test_server.py       # Unit tests for server.py (45 tests, 1 skipped)
+    test_server.py       # Unit tests for server.py (55+ tests)
     test_extras.py       # Unit tests for client.py and multiprocess.py
+    test_asgi.py         # Unit tests for asgi.py (45 tests, AAA pattern)
 
 benchmarks/
     benchmark_server.py  # SimpleXMLRPCServer vs ThreadPoolXMLRPCServer perf
+    benchmark_asgi.py    # XMLRPCASGIApp in-process perf (httpx.ASGITransport)
 
 docs/                    # MkDocs Material site source
 mkdocs.yml               # Docs site config
 .pre-commit-config.yaml  # Pre-commit hooks (ruff + mypy + hygiene)
-pyproject.toml           # Build config, tool config (ruff, mypy)
+pyproject.toml           # Build config, tool config (ruff, mypy, coverage)
 ```
 
 ---
@@ -88,8 +92,14 @@ pre-commit run --all-files
 ### 4. Run the test suite
 
 ```bash
+# Basic run
 python -m unittest discover -s tests -v
-# Expected: 45 tests, 1 skipped (SO_REUSEPORT skips on non-Linux)
+# Expected: 102+ tests, 1 skipped (SO_REUSEPORT skips on non-Linux)
+
+# With coverage (100% required)
+python -m coverage run --source=src -m pytest tests/
+python -m coverage report   # fail_under=100 configured in pyproject.toml
+python -m coverage html     # HTML report in htmlcov/
 ```
 
 ---
@@ -152,6 +162,7 @@ from xmlrpc_extended.multiprocess import (             # Linux SO_REUSEPORT help
     create_reuseport_socket,
     spawn_workers,
 )
+from xmlrpc_extended.asgi import XMLRPCASGIApp         # ASGI 3 adapter (optional dep: httpx for testing)
 ```
 
 **Invariants to preserve:**
