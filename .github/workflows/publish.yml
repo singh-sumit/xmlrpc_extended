@@ -165,7 +165,11 @@ jobs:
   # ── 4. Publish to real PyPI (tag pushes only) ─────────────────────────────
   publish-pypi:
     name: Publish to PyPI
-    needs: verify-testpypi
+    # Depends only on build (not verify-testpypi) so that TestPyPI filename-reuse
+    # errors (when a same-version file was previously uploaded and deleted) do not
+    # block the real release.  The build step runs twine check + check-wheel-contents
+    # which is sufficient quality gate for the distributions themselves.
+    needs: build
     runs-on: ubuntu-latest
     # Only run on actual version tag pushes, not on workflow_dispatch
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
