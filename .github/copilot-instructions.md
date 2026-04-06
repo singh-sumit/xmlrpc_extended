@@ -8,12 +8,13 @@
 
 ## Project at a glance
 
-- **Package:** `xmlrpc_extended` — thread-pool extension for Python's stdlib `SimpleXMLRPCServer`
+- **Package:** `xmlrpc_extended` — thread-pool + ASGI extension for Python's stdlib `SimpleXMLRPCServer`
 - **Layout:** `src/` layout, `tests/`, `benchmarks/`, `docs/`
 - **No runtime dependencies** — pure stdlib
 - **Python:** 3.10+ (use `from __future__ import annotations`)
 - **Lint:** `ruff` (rules E, F, W, I, UP; line-length 120)
 - **Types:** `mypy --strict` on `src/`
+- **Coverage:** 100% statements + branches required (`python -m coverage run --source=src -m pytest tests/`)
 
 ---
 
@@ -24,8 +25,11 @@
 | `src/xmlrpc_extended/server.py` | Core server; `ThreadPoolXMLRPCServer`, policies, stats |
 | `src/xmlrpc_extended/client.py` | `XMLRPCClient` context manager |
 | `src/xmlrpc_extended/multiprocess.py` | `SO_REUSEPORT` helpers (Linux only) |
-| `tests/test_server.py` | 45 unit tests for server |
-| `tests/test_extras.py` | Tests for client and multiprocess |
+| `src/xmlrpc_extended/asgi.py` | `XMLRPCASGIApp` — ASGI 3 adapter |
+| `tests/test_server.py` | 55+ unit tests for server (AAA pattern) |
+| `tests/test_extras.py` | Tests for client and multiprocess (AAA pattern) |
+| `tests/test_asgi.py` | 45 ASGI tests (AAA pattern, httpx.ASGITransport) |
+| `benchmarks/benchmark_asgi.py` | In-process ASGI benchmark |
 | `AGENTS.md` | Full AI agent instructions (read this first) |
 
 ---
@@ -42,9 +46,12 @@
 ### When adding a test
 
 - Follow the `setUp`/`tearDown` pattern in `test_server.py`
+- Wrap all test methods with `# Arrange`, `# Act`, `# Assert` comments
+- For ASGI tests use `httpx.ASGITransport(app=app)` — no real server needed
 - Use `("127.0.0.1", 0)` — port 0 lets the OS pick a free port
 - Add `time.sleep(0.05)` before asserting on async counter changes
 - `tearDown` must call `server.shutdown()` then `server.server_close()` then `thread.join(timeout=5)`
+- After adding tests, run `python -m coverage run --source=src -m pytest tests/ && python -m coverage report` to confirm 100%
 
 ### When adding docs
 
@@ -60,6 +67,10 @@
 # Tests
 python -m unittest discover -s tests -v
 
+# Tests with coverage (100% required)
+python -m coverage run --source=src -m pytest tests/
+python -m coverage report
+
 # Lint + format
 ruff check --fix src tests && ruff format src tests
 
@@ -68,6 +79,9 @@ mypy src
 
 # All in one (pre-commit)
 pre-commit run --all-files
+
+# ASGI benchmark
+python benchmarks/benchmark_asgi.py
 
 # Docs preview
 mkdocs serve

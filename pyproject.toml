@@ -31,6 +31,9 @@ dev = [
     "ruff>=0.15",
     "mypy>=1.10",
     "build>=1.2",
+    "coverage>=7.4",
+    "httpx>=0.27",
+    "anyio>=4.4",
 ]
 # Documentation: pip install -e ".[docs]" && mkdocs serve
 docs = [
@@ -65,3 +68,21 @@ ignore = ["E501"]
 python_version = "3.10"
 strict = true
 files = ["src"]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = ["*/__pycache__/*"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 100
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "@overload",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"

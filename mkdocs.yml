@@ -105,10 +105,12 @@ nav:
       - Observability: user-guide/stats.md
       - Client Helpers: user-guide/client-helpers.md
       - Scale-out (SO_REUSEPORT): user-guide/scale-out.md
+      - ASGI Integration: user-guide/asgi.md
   - API Reference:
       - server: api-reference/server.md
       - client: api-reference/client.md
       - multiprocess: api-reference/multiprocess.md
+      - asgi: api-reference/asgi.md
   - Architecture: architecture.md
   - Benchmarks: benchmarks.md
   - Security: security.md

@@ -131,3 +131,89 @@ because they write a response body.
       SLA enforcement.
     - Run the benchmark against *your* method implementations for accurate
       results — the benchmark's `sleep()` is a proxy for real I/O.
+
+---
+
+## XMLRPCASGIApp benchmarks
+
+`XMLRPCASGIApp` is measured **in-process** using `httpx.ASGITransport`
+(no TCP overhead), so results reflect pure XML-RPC parse/dispatch/marshal cost
+plus handler execution time.
+
+### Run it yourself
+
+```console
+# Default: 500 requests, 20 concurrent, 10 ms sleep
+python benchmarks/benchmark_asgi.py
+
+# Custom load
+python benchmarks/benchmark_asgi.py --requests 1000 --concurrency 50 --sleep 0.005
+```
+
+Full options:
+
+```
+--requests    INT   Total requests per scenario (default: 500)
+--concurrency INT   Max concurrent in-flight requests (default: 20)
+--sleep       FLOAT Handler sleep time in seconds (default: 0.01)
+--workers     INT   Thread-pool size for sync handlers (default: 8)
+```
+
+### Results (representative run)
+
+#### Test environment
+
+- CPU: 22-core Intel (Linux)
+- Python 3.14.2
+- Parameters: **500 requests, 20 concurrency, 10 ms sleep, 8 workers**
+
+#### Scenario results
+
+| Handler type | RPS | p50 latency | p95 latency | p99 latency |
+|---|---|---|---|---|
+| `async def` (asyncio.sleep) | **1 647** | 11.2 ms | 13.9 ms | 15.0 ms |
+| sync (time.sleep, thread pool) | 744 | 26.5 ms | 28.2 ms | 29.1 ms |
+| instant (no sleep) | **1 923** | 7.0 ms | 12.0 ms | 16.5 ms |
+
+#### Throughput comparison
+
+```
+Requests/second (higher is better)
+
+async  (asyncio.sleep)  ████████████████████████████████████████████████████████ 1647
+sync   (time.sleep)     █████████████████████████▌ 744
+instant (no sleep)      ████████████████████████████████████████████████████████████████████ 1923
+```
+
+#### Latency comparison — p50 (lower is better)
+
+```
+p50 latency in ms (lower is better)
+
+async  (asyncio.sleep)  ███████████▌ 11.2 ms
+sync   (time.sleep)     ██████████████████████████▌ 26.5 ms
+instant (no sleep)      ███████ 7.0 ms
+```
+
+### Interpretation
+
+**`async def` handlers** run directly in the asyncio event loop.  With
+`concurrency=20` and `sleep=10 ms`, 20 async coroutines overlap their
+`asyncio.sleep` calls, giving ~1 650 RPS.
+
+**Sync handlers** run in the `ThreadPoolExecutor`.  With `max_workers=8` and
+20 concurrent requests, only 8 can execute in parallel — the other 12 queue,
+raising p50 latency to ~26 ms and halving throughput compared to async.
+Increasing `max_workers` to 20 would match async performance here.
+
+**Instant handlers** (no sleep) show the XML-RPC overhead floor: ~0.5 ms per
+request for UTF-8 parse + method dispatch + response marshal.
+
+### Key takeaways
+
+- Prefer `async def` handlers for I/O-bound work — they fully exploit the
+  event loop and bypass the thread pool entirely.
+- Match `max_workers` to your concurrency level for sync handlers; a good
+  rule of thumb is `max_workers ≈ expected_concurrent_sync_requests`.
+- The XML-RPC parse/marshal overhead is ~0.5 ms per call (negligible for most
+  workloads; use `use_builtin_types=True` for datetime / bytes-heavy APIs).
