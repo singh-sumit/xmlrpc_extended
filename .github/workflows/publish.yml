@@ -1,0 +1,185 @@
+name: Publish
+
+# Triggers:
+#   1. Push a version tag (v*.*.*) → build, publish to TestPyPI, verify
+#      install, then publish to real PyPI.
+#   2. workflow_dispatch → build, publish to TestPyPI, verify install only
+#      (no real-PyPI step). Useful for testing the pipeline without creating
+#      a real release.
+#
+# Required GitHub repository secrets:
+#   TESTPYPI_API_TOKEN  — token from test.pypi.org (scope: entire account or project)
+#   PYPI_API_TOKEN      — token from pypi.org (scope: entire account or project)
+#
+# Add secrets at:
+#   https://github.com/singh-sumit/xmlrpc_extended/settings/secrets/actions
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+jobs:
+  # ── 1. Build ──────────────────────────────────────────────────────────────
+  build:
+    name: Build distributions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tool
+        run: python -m pip install build twine check-wheel-contents
+
+      - name: Build sdist and wheel
+        run: python -m build
+
+      - name: Validate distributions
+        run: |
+          check-wheel-contents dist/*.whl
+          twine check dist/*
+
+      - name: Upload distributions as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  # ── 2. Publish to TestPyPI ────────────────────────────────────────────────
+  publish-testpypi:
+    name: Publish to TestPyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/xmlrpc-extended/
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install twine
+        run: python -m pip install twine
+
+      - name: Upload to TestPyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TESTPYPI_API_TOKEN }}
+        run: twine upload --repository-url https://upload.test.pypi.org/legacy/ dist/*
+
+  # ── 3. Verify install from TestPyPI ──────────────────────────────────────
+  verify-testpypi:
+    name: Verify install from TestPyPI
+    needs: publish-testpypi
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    # Extract version from the tag (v0.1.0 → 0.1.0) or default to latest
+    env:
+      PKG_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # TestPyPI can take a moment to make the new version visible
+      - name: Wait for TestPyPI index to refresh
+        run: sleep 15
+
+      - name: Install from TestPyPI
+        run: |
+          VERSION="${PKG_VERSION#v}"       # strip leading 'v' from tag
+          if [[ "$VERSION" == "latest" ]]; then
+            SPEC="xmlrpc-extended"
+          else
+            SPEC="xmlrpc-extended==${VERSION}"
+          fi
+          pip install \
+            --index-url https://test.pypi.org/simple/ \
+            --extra-index-url https://pypi.org/simple/ \
+            "${SPEC}"
+
+      - name: Verify core imports
+        run: |
+          python - <<'EOF'
+          from xmlrpc_extended import ThreadPoolXMLRPCServer, ServerOverloadPolicy, ServerStats
+          from xmlrpc_extended.asgi import XMLRPCASGIApp
+          from xmlrpc_extended.client import XMLRPCClient
+          print("ThreadPoolXMLRPCServer OK")
+          print("XMLRPCASGIApp         OK")
+          print("XMLRPCClient          OK")
+          EOF
+
+      - name: Smoke-test — start server and call it
+        run: |
+          python - <<'EOF'
+          import threading, xmlrpc.client
+          from xmlrpc_extended import ThreadPoolXMLRPCServer
+
+          server = ThreadPoolXMLRPCServer(("127.0.0.1", 0), logRequests=False)
+          server.register_function(lambda a, b: a + b, "add")
+          port = server.server_address[1]
+          t = threading.Thread(target=server.serve_forever, daemon=True)
+          t.start()
+
+          proxy = xmlrpc.client.ServerProxy(f"http://127.0.0.1:{port}/")
+          result = proxy.add(2, 3)
+          assert result == 5, f"Expected 5, got {result}"
+          server.shutdown()
+          server.server_close()
+          print(f"Smoke test passed: add(2, 3) = {result}")
+          EOF
+
+  # ── 4. Publish to real PyPI (tag pushes only) ─────────────────────────────
+  publish-pypi:
+    name: Publish to PyPI
+    needs: verify-testpypi
+    runs-on: ubuntu-latest
+    # Only run on actual version tag pushes, not on workflow_dispatch
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: pypi
+      url: https://pypi.org/project/xmlrpc-extended/
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install twine
+        run: python -m pip install twine
+
+      - name: Upload to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*

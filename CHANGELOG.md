@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-04-06
+
 ### Added
 - `XMLRPCASGIApp` — ASGI 3-compliant XML-RPC adapter (`src/xmlrpc_extended/asgi.py`):
   - Inherits `SimpleXMLRPCDispatcher` for full `register_function` / `register_instance` / `register_introspection_functions` compatibility.
@@ -43,3 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Overload semantics: capacity model table, policy behavior matrix, and recommended defaults documented in README.
+
+[Unreleased]: https://github.com/singh-sumit/xmlrpc_extended/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/singh-sumit/xmlrpc_extended/releases/tag/v0.1.0
